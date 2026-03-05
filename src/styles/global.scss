@@ -1,0 +1,107 @@
+// Import global colors
+@use "./colors" as *;
+
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css");
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-thin-straight/css/uicons-thin-straight.css");
+@import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-solid-rounded/css/uicons-solid-rounded.css");
+
+//inter fonts from google fonts
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  font-family: "Inter", sans-serif;
+}
+
+.icon {
+  transform: translateY(1px);
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100vw;
+  height: 100vh;
+
+  .canvas_bottom {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+    max-height: 100vh;
+    max-width: 100vw;
+    overflow: auto;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+      min-width: 10px;
+    }
+
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: transparent;
+      border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #ffffff0c;
+      opacity: 0.3;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+
+      &:hover {
+        background-color: #ffffff25;
+      }
+    }
+  }
+}
+
+.toast {
+  background-color: var(--border) !important;
+  border: 1px solid var(--border) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 0.8rem !important;
+  width: 25rem !important;
+  padding: 0.5rem !important;
+  padding-left: 1rem !important;
+
+  .toast_title {
+    color: var(--text-primary) !important;
+  }
+
+  .toast_icon {
+    color: var(--text-primary) !important;
+  }
+
+  .toast_cancel_button {
+    background-color: var(--border) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+    padding: 1.2rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  .toast_action_button {
+    background-color: var(--accent) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+    padding: 1.2rem !important;
+    border-radius: 0.5rem !important;
+  }
+}
