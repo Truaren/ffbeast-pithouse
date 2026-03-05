@@ -1,0 +1,101 @@
+.torque_bar {
+  width: 5.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  gap: 1.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: 1.5rem;
+  padding: 1rem;
+  padding-top: 2rem;
+  transition: width 0s;
+  position: relative;
+  min-height: 30rem;
+  min-width: 5.5rem;
+  max-width: 5.5rem;
+
+  span {
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    text-align: center;
+    opacity: 0.5;
+    font-weight: 400;
+  }
+
+  .bar {
+    width: 10px;
+    height: 100%;
+    background: var(--border);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    .positive,
+    .negative {
+      position: relative;
+      height: 50%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .positive {
+      display: flex;
+      align-items: flex-end;
+
+      .progress {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.5rem 0.5rem 0 0;
+
+        &::before {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 500px;
+          background: linear-gradient(
+            180deg,
+            rgba(34, 197, 94, 1) 0%,
+            rgba(250, 204, 21, 1) 50%,
+            rgba(239, 68, 68, 1) 100%
+          );
+        }
+      }
+    }
+
+    .negative {
+      display: flex;
+      align-items: flex-start;
+
+      .progress {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 0.5rem 0.5rem;
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 400px;
+          background: linear-gradient(
+            180deg,
+            rgba(239, 68, 68, 1) 0%,
+            rgba(250, 204, 21, 1) 50%,
+            rgba(34, 197, 94, 1) 100%
+          );
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,423 @@
+.settings-page {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 3rem;
+  box-sizing: border-box;
+  background-color: var(--bg-primary);
+
+  .settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .settings-header {
+    margin-bottom: 2rem;
+
+    h1 {
+      color: var(--text-primary);
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+    }
+  }
+
+  .settings-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+    flex-wrap: wrap;
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      position: relative;
+
+      &.active {
+        color: var(--accent);
+        background: rgba(240, 240, 240, 0.1);
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: 0rem;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: var(--accent);
+          border-radius: 3px 3px 0 0;
+        }
+      }
+    }
+  }
+
+  .settings-body {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    min-height: 300px;
+    border: 1px solid var(--border);
+  }
+
+  .settings-content {
+    h2 {
+      color: var(--text-primary);
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+
+    h3 {
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin: 1.5rem 0 1rem 0;
+    }
+
+    p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0.5rem 0;
+    }
+
+    .settings-description {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .support-section {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    margin-top: 6rem;
+
+    p {
+      margin-top: 1rem;
+      max-width: 50%;
+      color: var(--text-secondary);
+    }
+  }
+
+  .theme-section {
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+
+      .color-option {
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+
+        @include hover_scale_transition;
+
+        &.active {
+          border-color: var(--accent);
+          background: rgba(240, 240, 240, 0.05);
+
+          .color-name {
+            color: var(--accent);
+          }
+        }
+
+        .color-preview {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-name {
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+          text-align: center;
+          font-weight: 500;
+          transition: color 0.2s ease;
+        }
+      }
+    }
+    .desktop-settings {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+
+        .setting-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .setting-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1rem;
+          }
+
+          .setting-description {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+  }
+
+  .about-section {
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .info-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .info-value {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+    }
+
+    .credits-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+
+      .credit-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .credit-role {
+          color: var(--text-secondary);
+          font-size: 0.85rem;
+          min-width: 80px;
+        }
+
+        .credit-name {
+          color: var(--text-primary);
+          font-weight: 600;
+          font-size: 0.95rem;
+
+          a {
+            color: var(--accent);
+            text-decoration: none;
+            &:hover {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .about-description {
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0;
+
+      li {
+        color: var(--text-secondary);
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+
+        &::before {
+          content: "•";
+          color: var(--accent);
+          font-weight: bold;
+          position: absolute;
+          left: 0;
+          font-size: 1.5rem;
+          line-height: 1.2;
+        }
+      }
+    }
+
+    p {
+      a {
+        color: var(--text-primary);
+        text-decoration: underline;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+
+  .changelog-section {
+    .changelog-item {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+
+      &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .changelog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+
+        h3 {
+          margin: 0;
+          color: var(--accent);
+        }
+
+        .changelog-date {
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+        }
+      }
+
+      .changelog-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          color: var(--text-secondary);
+          padding: 0.5rem 0;
+          padding-left: 1.5rem;
+          position: relative;
+          line-height: 1.5;
+
+          &::before {
+            content: "→";
+            color: var(--accent);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+          }
+        }
+      }
+    }
+  }
+
+  .disclaimer-section {
+    h3 {
+      color: var(--text-primary);
+      margin-top: 2rem;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    .warning-text {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #ef4444;
+      font-weight: 500;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+}
+
+.settings-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-page::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.settings-page::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 1rem;
+
+    .settings-header {
+      h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .settings-tabs {
+      .tab-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    .settings-body {
+      padding: 1.5rem;
+    }
+
+    .theme-section .color-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .action-buttons {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
