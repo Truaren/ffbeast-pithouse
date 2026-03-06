@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/Truaren/ffbeast-pithouse/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Truaren/ffbeast-pithouse?style=for-the-badge&color=success" alt="Latest Release" />
+    <img src="https://img.shields.io/github/v/release/Truaren/ffbeast-pithouse?display_name=tag&style=for-the-badge&color=success" />
   </a>
   <img src="https://img.shields.io/badge/Platform-Windows-blue?style=for-the-badge&logo=windows" alt="Platform" />
   <img src="https://img.shields.io/badge/Tech-React_%7C_Electron-informational?style=for-the-badge" alt="Tech Stack" />
