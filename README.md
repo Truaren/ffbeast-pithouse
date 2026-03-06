@@ -65,6 +65,23 @@ npm run build:win
 
 If you enjoy using FFBeast Pit House and want to support its continuous development, consider using the **Donate** button inside the app. Every contribution helps improve the project!
 
+## 🗺️ Roadmap
+
+Here is a glimpse of what's planned for the future of FFBeast Pit House:
+
+- **Global User Preset Repository:** A centralized, cloud-based hub where users can share, rate, and download community-made game configurations and FFBeast profiles.
+- **Third-party Accessory Support:** Native integration for standalone Logitech, Fanatec, Moza, and other popular USB pedals, shifters, and handbrakes.
+- **DIY Hardware Integration:** Direct support for Arduino Nano and similar microcontrollers (via USB/DirectInput) to natively visualize and calibrate your custom DIY pedals and shifters right inside Pit House.
+- **Advanced Telemetry Overlay:** In-game visual overlays for real-time wheelbase clipping and torque output monitoring.
+
+## 🙏 Acknowledgements
+
+FFBeast Pit House wouldn't be possible without the incredible work and foundation laid by the open-source sim-racing community. A massive thank you to:
+
+- **[shubham0x13](https://github.com/shubham0x13)** for the amazing [ffbeast-wheel-webhid-api](https://github.com/shubham0x13/ffbeast-wheel-webhid-api) that makes WebHID communication possible.
+- **[yaxraj-rajput](https://github.com/yaxraj-rajput)** for the original repository foundation and UI inspirations: [yaxraj-rajput repositories](https://github.com/yaxraj-rajput?tab=repositories).
+- **[osnipezzini](https://github.com/osnipezzini)** for the core FFBeast ecosystem: [FFBeast Project](https://github.com/osnipezzini/FFBeast).
+
 ---
 
 <div align="center">
