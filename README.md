@@ -26,6 +26,29 @@
 - **Real-time Telemetry:** Interactive dashboards, torque visualizers, and raw data monitors to tune your hardware to perfection.
 - **Zero Bloat:** Lightweight, lightning-fast Electron standalone build.
 
+## 📸 Gallery
+
+<p align="center">
+  <img src="docs/Main.png" alt="Main Dashboard" width="49%" />
+  <img src="docs/Themes.png" alt="Themes Customization" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/Base.png" alt="Base Configuration" width="49%" />
+  <img src="docs/Axes.png" alt="Axes Settings" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/Effects.png" alt="Force Feedback Effects" width="49%" />
+  <img src="docs/Buttons.png" alt="Button Mapping" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/AutoProfiler.png" alt="Auto-Profiler" width="49%" />
+  <img src="docs/Monitoring.png" alt="Real-time Monitoring" width="49%" />
+</p>
+<p align="center">
+  <img src="docs/Pins.png" alt="Pins Configuration" width="49%" />
+  <img src="docs/Protocols.png" alt="Supported Protocols" width="49%" />
+</p>
+
 ## 🚀 Installation
 
 1. Go to the [Releases page](https://github.com/Truaren/ffbeast-pithouse/releases/latest).
