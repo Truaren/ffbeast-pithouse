@@ -80,7 +80,7 @@ FFBeast Pit House wouldn't be possible without the incredible work and foundatio
 
 - **[shubham0x13](https://github.com/shubham0x13)** for the amazing [ffbeast-wheel-webhid-api](https://github.com/shubham0x13/ffbeast-wheel-webhid-api) that makes WebHID communication possible.
 - **[yaxraj-rajput](https://github.com/yaxraj-rajput)** for the original repository foundation and UI inspirations: [yaxraj-rajput repositories](https://github.com/yaxraj-rajput?tab=repositories).
-- **[osnipezzini](https://github.com/osnipezzini)** for the core FFBeast ecosystem: [FFBeast Project](https://github.com/osnipezzini/FFBeast).
+- **[osnipezzini](https://github.com/osnipezzini)** for the FFBeast UI ecosystem: [FFBeast Project](https://github.com/osnipezzini/FFBeast).
 
 ---
 
