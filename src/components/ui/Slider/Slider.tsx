@@ -1,7 +1,7 @@
 import "./style.scss";
 
 import { Button, InfoPanel, type InfoPanelProps } from "@components/ui";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useWheelStore } from "@/stores";
 
@@ -37,6 +37,7 @@ export const Slider = ({
   const [showInfo, setShowInfo] = useState(false);
   const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
   const infoWrapRef = useRef<HTMLSpanElement>(null);
+  const infoPanelRef = useRef<HTMLDivElement>(null);
 
   const clamp = (val: number) => Math.min(max, Math.max(min, val));
 
@@ -90,8 +91,23 @@ export const Slider = ({
 
       setPopupStyle(style);
     }
-    setShowInfo(!showInfo);
+    setShowInfo((prev) => !prev);
   };
+
+  // Close popup when clicking anywhere outside the info button+panel
+  useEffect(() => {
+    if (!showInfo) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const inButton = infoWrapRef.current?.contains(target);
+      const inPanel = infoPanelRef.current?.contains(target);
+      if (!inButton && !inPanel) {
+        setShowInfo(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [showInfo]);
 
   return (
     <div className={`setting_option ${isDisabled ? "disabled" : ""}`}>
@@ -163,7 +179,7 @@ export const Slider = ({
       </div>
 
       {showInfo && infoPanelProps && (
-        <div className="info_panel" style={popupStyle} onClick={(e) => e.stopPropagation()}>
+        <div className="info_popup_wrapper" ref={infoPanelRef} style={popupStyle}>
           <InfoPanel {...infoPanelProps} />
         </div>
       )}

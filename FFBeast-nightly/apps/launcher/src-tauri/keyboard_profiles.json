@@ -1,0 +1,10 @@
+{
+  "active_profile_id": "default",
+  "profiles": [
+    {
+      "id": "default",
+      "name": "Default",
+      "mappings": []
+    }
+  ]
+}

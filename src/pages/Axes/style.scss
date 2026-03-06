@@ -1,0 +1,122 @@
+// ─── Axes Page ────────────────────────────────────────────────────────────────
+
+.axes_page {
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.axes_header_note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(var(--accent-rgb, 99,102,241), 0.08);
+  border: 1px solid rgba(var(--accent-rgb, 99,102,241), 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  flex-shrink: 0;
+
+  i { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+  strong { color: var(--text-primary); }
+}
+
+.axes_list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.axis_card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
+  &:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+}
+
+.axis_card_header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  background: var(--card-header-bg, rgba(0,0,0,0.03));
+  border-bottom: 1px solid var(--border);
+
+  i { font-size: 0.9rem; color: var(--accent); }
+  h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); flex: 1; }
+}
+
+.axis_live_pct {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.axis_bar_track {
+  position: relative;
+  height: 6px;
+  background: var(--border);
+  margin: 0.3rem 1rem;
+  flex-shrink: 0;
+}
+
+.axis_bar_fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: 0 5px 5px 0;
+  transition: width 50ms linear;
+}
+
+.axis_threshold {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 1px;
+
+  &.low { background: #22c55e; }
+  &.high { background: #ef4444; }
+}
+
+.axis_settings {
+  padding: 0.3rem 1rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  justify-content: space-around;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.axis_row_two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1.5rem;
+
+  // Reduce label font size so text doesn't clip
+  .option_title span {
+    font-size: 0.72rem;
+  }
+}
+
+.axis_invert_wrap {
+  display: flex;
+  align-items: center;
+  padding-top: 0.2rem;
+}

@@ -1,0 +1,255 @@
+// ─── Monitoring Page ──────────────────────────────────────────────────────────
+
+.monitoring_page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  height: 100%;
+}
+
+.mon_content_grid {
+  display: grid;
+  grid-template-columns: minmax(auto, 500px) minmax(auto, 500px);
+  justify-content: center;
+  grid-template-rows: 1fr auto;
+  gap: 1.25rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.mon_card_analog { grid-column: 1 / 2; grid-row: 1 / 2; }
+.mon_card_digital { grid-column: 2 / 3; grid-row: 1 / 2; }
+.mon_card_torque { grid-column: 1 / -1; grid-row: 2 / 3; }
+
+.mon_banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #dc2626;
+
+  i { flex-shrink: 0; }
+}
+
+.mon_card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  &:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+}
+
+.mon_card_header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-header-bg, rgba(0,0,0,0.03));
+
+  i { font-size: 0.9rem; color: var(--accent); }
+  h2 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); flex: 1; }
+}
+
+.mon_card_body {
+  padding: 1.5rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mon_card_torque .mon_card_body {
+  justify-content: center;
+}
+
+.mon_badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--border);
+  color: var(--text-secondary);
+
+  &.live {
+    background: rgba(34,197,94,0.15);
+    color: #16a34a;
+    animation: mon_pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes mon_pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.mon_empty {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem 0;
+  font-style: italic;
+}
+
+// ─── Analog inputs ────────────────────────────────────────────────────────────
+
+.mon_axes_list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.mon_axis_row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.mon_axis_label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 45px;
+}
+
+.mon_axis_track {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mon_axis_fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #a78bfa);
+  border-radius: inherit;
+  transition: width 50ms linear;
+}
+
+.mon_axis_value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mon_axis_raw {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 70px;
+}
+
+// ─── Digital buttons ──────────────────────────────────────────────────────────
+
+.mon_buttons_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.mon_btn_indicator {
+  aspect-ratio: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  transition: all 0.1s ease;
+
+  &.pressed {
+    background: rgba(34,197,94,0.2);
+    border-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34,197,94,0.4);
+  }
+}
+
+.mon_btn_num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+
+  .pressed & { color: #16a34a; }
+}
+
+// ─── Torque monitor ───────────────────────────────────────────────────────────
+
+.mon_torque_readout {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  margin-bottom: 0.8rem;
+}
+
+.mon_torque_val {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.mon_torque_unit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 0.15rem;
+}
+
+.mon_torque_sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.mon_torque_bar_track {
+  position: relative;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.mon_torque_fill {
+  position: absolute;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 50ms linear;
+}
+
+.mon_torque_center {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--text-secondary);
+  transform: translateX(-50%);
+}
+
+.mon_canvas {
+  width: 100%;
+  height: 50px;
+  border-radius: 6px;
+  background: var(--input-bg, rgba(0,0,0,0.04));
+  display: block;
+}

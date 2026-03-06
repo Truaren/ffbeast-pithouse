@@ -1,13 +1,14 @@
 import "./style.scss";
-
 import { useEffect, useState } from "react";
-
+import { ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 import { Button, Divider, ToggleSwitch } from "@/components/ui";
+import { ROUTES } from "@/routes";
 import { DEFAULT_APP_PREFERENCES } from "@/config";
 import { useAppPreferencesStore } from "@/stores";
+import { useUpdateStore } from "@/stores/updateStore";
 import { THEMES } from "@/theme";
 
-type TabType = "preferences" | "about" | "disclaimer";
+type TabType = "preferences" | "sidebar" | "feedback" | "about" | "disclaimer";
 
 interface Tab {
   id: TabType;
@@ -17,16 +18,20 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: "preferences", label: "Preferences" },
+  { id: "sidebar", label: "Sidebar Menu" },
+  { id: "feedback", label: "Feedback" },
   { id: "about", label: "About" },
   { id: "disclaimer", label: "Disclaimer" },
 ];
 
 export const Settings = () => {
-  const { preferences, setTheme } = useAppPreferencesStore();
+  const { preferences, setTheme, setAutoCheckUpdates, setSidebarConfig } = useAppPreferencesStore();
+  const { checkForUpdate, isChecking, latestVersion } = useUpdateStore();
 
   const [activeTab, setActiveTab] = useState<TabType>("preferences");
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [startWithSystem, setStartWithSystem] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     // Check if we are in Electron
@@ -125,11 +130,155 @@ export const Settings = () => {
         </div>
       </div>
 
+      <div className="desktop-settings" style={{ marginTop: "1.5rem" }}>
+        <h3>Updates</h3>
+        
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Auto Check for Updates</span>
+            <span className="setting-description">
+              Automatically check for new versions on launch
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.autoCheckUpdates !== false}
+            onToggle={(val) => setAutoCheckUpdates(val)}
+          />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Application Version</span>
+            <span className="setting-description">
+              Current: v{__APP_VERSION__} {latestVersion ? `| Latest: ${latestVersion}` : ""}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="action-buttons">
-        <Button onClick={() => setTheme(DEFAULT_APP_PREFERENCES.theme)}>
-          Reset to Default
+        <Button onClick={() => checkForUpdate(true)} disabled={isChecking}>
+          {isChecking ? "Checking..." : "Check for Updates"}
+        </Button>
+        <Button 
+          variant={confirmReset ? "primary" : "secondary"} 
+          style={confirmReset ? { backgroundColor: "#ef4444", color: "white", borderColor: "#ef4444" } : {}}
+          onClick={() => {
+            if (confirmReset) {
+              setTheme(DEFAULT_APP_PREFERENCES.theme);
+              setConfirmReset(false);
+            } else {
+              setConfirmReset(true);
+              setTimeout(() => setConfirmReset(false), 3000);
+            }
+          }}
+        >
+          {confirmReset ? "Are you sure?" : "Reset to Default"}
         </Button>
       </div>
+    </div>
+  );
+
+  const renderSidebarContent = () => {
+    // Current specific configurations or default unconfigured items
+    let currentConfig = preferences.sidebarConfig ?? [];
+    
+    // Auto-populate based on ROUTES if config is empty or missing items
+    const routeKeys = Object.keys(ROUTES).filter(k => k !== "settings");
+    
+    if (currentConfig.length !== routeKeys.length) {
+       const newConfig = routeKeys.map((k, index) => {
+         const existing = currentConfig.find(c => c.id === k);
+         return existing ?? { id: k, visible: true, order: index };
+       }).sort((a,b) => a.order - b.order);
+       currentConfig = newConfig;
+    }
+
+    const moveItem = (index: number, direction: -1 | 1) => {
+      if (index + direction < 0 || index + direction >= currentConfig.length) return;
+      const newConfig = [...currentConfig];
+      // Swap orders
+      const tempOrder = newConfig[index].order;
+      newConfig[index].order = newConfig[index + direction].order;
+      newConfig[index + direction].order = tempOrder;
+      
+      // Sort array by new order
+      newConfig.sort((a, b) => a.order - b.order);
+      setSidebarConfig(newConfig);
+    };
+
+    const toggleVisibility = (index: number) => {
+      const newConfig = [...currentConfig];
+      newConfig[index].visible = !newConfig[index].visible;
+      setSidebarConfig(newConfig);
+    };
+
+    return (
+      <div className="settings-content">
+        <h2>Sidebar Customization</h2>
+        <p className="settings-description">
+          Reorder and toggle visibility of left menu navigation items.
+        </p>
+        <Divider />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', maxWidth: '400px' }}>
+          {currentConfig.map((item, idx) => {
+            const route = ROUTES[item.id as keyof typeof ROUTES];
+            if (!route) return null;
+            return (
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: item.visible ? 1 : 0.5 }}>
+                  <i className={route.icon} style={{ fontSize: '1.2rem', color: 'var(--accent)' }}/>
+                  <span style={{ fontWeight: 500 }}>{route.title}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                   <div title={item.visible ? "Hide" : "Show"}>
+                     <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} onClick={() => toggleVisibility(idx)}>
+                       {item.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                     </Button>
+                   </div>
+                   <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} disabled={idx === 0} onClick={() => moveItem(idx, -1)}>
+                     <ArrowUp size={16} />
+                   </Button>
+                   <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} disabled={idx === currentConfig.length - 1} onClick={() => moveItem(idx, 1)}>
+                     <ArrowDown size={16} />
+                   </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderFeedbackContent = () => (
+    <div className="settings-content">
+      <h2>Provide Feedback</h2>
+      <p className="settings-description">
+        Submit a bug report or feature request directly to the developer.
+      </p>
+      <Divider />
+      <form target="_blank" action="https://formsubmit.co/trueaaren@gmail.com" method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', maxWidth: '500px' }}>
+         {/* FormSubmit config: disables automatic captcha if you have a pro plan, but we'll include it. You can skip captcha via next field if you want */}
+         <input type="hidden" name="_subject" value="New Bug Report / Feature Request!" />
+         
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Who is writing (Name)</label>
+           <input type="text" name="name" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} placeholder="e.g. truearena" required />
+         </div>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Description of Bug or Request</label>
+           <textarea name="message" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', minHeight: '120px', resize: 'vertical' }} placeholder="Explain the issue or functionality you'd like to see..." required />
+         </div>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Contact Email</label>
+           <input type="email" name="email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} placeholder="Email Address" required />
+         </div>
+         <button type="submit" className="button_comp primary" style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}>
+           Submit Feedback
+         </button>
+      </form>
     </div>
   );
 
@@ -146,7 +295,7 @@ export const Settings = () => {
         </div>
         <div className="info-row">
           <span className="info-label">Version:</span>
-          <span className="info-value">v1.0</span>
+          <span className="info-value">v{__APP_VERSION__}</span>
         </div>
         <div className="info-row">
           <span className="info-label">License:</span>
@@ -177,11 +326,11 @@ export const Settings = () => {
             <span className="credit-role">Created by</span>
             <span className="credit-name">
               <a
-                href="https://github.com/truearena"
+                href="https://github.com/truaren"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                @truearena
+                @truaren
               </a>
             </span>
           </div>
@@ -253,6 +402,10 @@ export const Settings = () => {
     switch (activeTab) {
       case "preferences":
         return renderThemeContent();
+      case "sidebar":
+        return renderSidebarContent();
+      case "feedback":
+        return renderFeedbackContent();
       case "about":
         return renderAboutContent();
       case "disclaimer":

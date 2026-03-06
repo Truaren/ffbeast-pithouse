@@ -1,0 +1,125 @@
+// ─── Protocol Page ─────────────────────────────────────────────────────────────
+
+.protocol_page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.proto_card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .proto_card_header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--card-header-bg, rgba(0,0,0,0.03));
+
+    i { font-size: 0.95rem; color: var(--accent); }
+    h2 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); flex: 1; }
+  }
+
+  .proto_card_body {
+    padding: 1.25rem;
+  }
+}
+
+.proto_desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.proto_select_row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.proto_label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 90px;
+}
+
+.proto_select {
+  flex: 1;
+  background: var(--input-bg, rgba(0,0,0,0.05));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.75rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  &:hover, &:focus { border-color: var(--accent); }
+
+  option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+.proto_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 2rem;
+  margin-bottom: 1rem;
+}
+
+.proto_field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  .proto_label { min-width: unset; }
+  .proto_select { flex: unset; }
+}
+
+.proto_sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.proto_doc_body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+
+
+.proto_doc_title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.proto_doc_text {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}

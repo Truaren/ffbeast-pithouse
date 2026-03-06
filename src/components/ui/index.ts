@@ -6,3 +6,4 @@ export * from "./InputBox";
 export * from "./ProfilePanel";
 export * from "./Slider";
 export * from "./ToggleSwitch";
+export * from "./DonateModal/DonateModal";

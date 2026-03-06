@@ -1,0 +1,39 @@
+[package]
+name = "sodevs-launcher"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "sodevs_launcher_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+ffbeast-controller = { path = "../../../libs/controller" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9.11"
+rusqlite = { version = "0.38.0", features = ["bundled"] }
+hidapi = "2.6.4"
+anyhow = "1.0.100"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+log = "0.4"
+tauri-plugin-dialog = "2.6.0"
+reqwest = { version = "0.12", features = ["json"] }
+urlencoding = "2.1"
+steamworks = "0.12"
+sodevs-input-manager = { path = "../../../libs/input_manager" }
+
+

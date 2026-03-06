@@ -42,12 +42,8 @@
       h2 {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #555;
+        color: var(--text-secondary);
         margin: 0;
-
-        :global(.dark) & {
-          color: var(--text-secondary);
-        }
       }
     }
 

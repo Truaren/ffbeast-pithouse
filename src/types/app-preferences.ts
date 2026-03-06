@@ -10,9 +10,13 @@ export interface AppPreferences {
   pedalName: string;
   pedalImageUrl: string;
   hiddenPedals: string[];
+  invertedPedals: string[];
   pedalBindings: {
     Throttle: number;
     Brake: number;
     Clutch: number;
   };
+  autoCheckUpdates: boolean;
+  autoProfiles: { exeName: string; profileId: string }[];
+  sidebarConfig?: { id: string; visible: boolean; order: number }[];
 }

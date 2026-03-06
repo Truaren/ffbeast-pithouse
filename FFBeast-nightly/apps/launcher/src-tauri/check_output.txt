@@ -1,0 +1,22 @@
+    Checking sodevs-launcher v0.1.0 (C:\Users\zoio\Projetos\SODevsGameLauncher\launcher\src-tauri)
+error[E0252]: the name `ProfileWatcher` is defined multiple times
+ --> launcher\src-tauri\src\services\mod.rs:6:9
+  |
+5 | pub use profile_watcher::ProfileWatcher;
+  |         ------------------------------- previous import of the type `ProfileWatcher` here
+6 | pub use profile_watcher::ProfileWatcher;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `ProfileWatcher` reimported here
+  |
+  = note: `ProfileWatcher` must be defined only once in the type namespace of this module
+
+warning: unused import: `profile_watcher::ProfileWatcher`
+ --> launcher\src-tauri\src\services\mod.rs:6:9
+  |
+6 | pub use profile_watcher::ProfileWatcher;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0252`.
+warning: `sodevs-launcher` (lib) generated 1 warning
+error: could not compile `sodevs-launcher` (lib) due to 1 previous error; 1 warning emitted

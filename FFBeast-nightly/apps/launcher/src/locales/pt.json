@@ -1,0 +1,133 @@
+{
+    "app": {
+        "title": "SODevs Game Launcher",
+        "searching": "Procurando hardware...",
+        "connected": "Hardware Conectado"
+    },
+    "library": {
+        "title": "Sua Biblioteca",
+        "add_game": "Adicionar Jogo",
+        "launch": "Jogar",
+        "no_games": "Nenhum jogo encontrado.",
+        "scan_retry": "Escanear Novamente",
+        "form": {
+            "title": "Adicionar Novo Jogo",
+            "name": "Nome do Jogo",
+            "path": "Caminho do Executável",
+            "args": "Argumentos de Lançamento (opcional)",
+            "browse": "Procurar",
+            "cancel": "Cancelar",
+            "save": "Salvar Jogo",
+            "search": "Buscar Jogos da Steam",
+            "selectFromLibrary": "Selecionar da Biblioteca Steam",
+            "steamLibraryTitle": "Seus Jogos da Steam",
+            "loading": "Carregando...",
+            "searching": "Buscando...",
+            "close": "Fechar"
+        }
+    },
+    "monitor": {
+        "position": "Posição",
+        "torque": "Torque",
+        "reset_center": "Calibrar Centro",
+        "reboot": "Reiniciar Dispositivo",
+        "confirm_reboot": "Tem certeza que deseja reiniciar o dispositivo?"
+    },
+    "config": {
+        "title": "Configuração do Volante",
+        "total_force": "Força Total",
+        "motion_range": "Graus de Rotação",
+        "dynamic_damp": "Amortecimento Dinâmico"
+    },
+    "settings": {
+        "title": "Configurações",
+        "wheel": {
+            "title": "Perfil Padrão do Volante",
+            "motion_range": "Graus de Rotação",
+            "help_motion_range": "Define o ângulo máximo de rotação (180° a 1440°)",
+            "total_force": "Força Total",
+            "help_total_force": "Intensidade geral do Force Feedback (0-100%)",
+            "integrated_spring": "Força da Mola Integrada",
+            "help_integrated_spring": "Força de retorno ao centro quando não há efeitos ativos",
+            "invert_force": "Inverter Força do Jogo",
+            "help_invert_force": "Inverte a direção da força recebida do jogo"
+        },
+        "soft_stop": {
+            "title": "Soft Stop (Limite Suave)",
+            "strength": "Força do Soft Stop",
+            "help_strength": "Intensidade da resistência nos limites de rotação",
+            "range": "Alcance do Soft Stop",
+            "help_range": "Graus antes do limite onde o soft stop começa a agir",
+            "dampening": "Amortecimento do Soft Stop",
+            "help_dampening": "Amortecimento aplicado durante o soft stop"
+        },
+        "dampening": {
+            "title": "Amortecimento",
+            "static": "Amortecimento Estático",
+            "help_static": "Resistência ao movimento quando o volante está parado",
+            "dynamic": "Amortecimento Dinâmico",
+            "help_dynamic": "Resistência proporcional à velocidade de rotação"
+        },
+        "directx": {
+            "title": "Efeitos DirectX (do Jogo)",
+            "constant": "Força Constante",
+            "help_constant": "Intensidade dos efeitos de força constante do jogo",
+            "periodic": "Efeitos Periódicos",
+            "help_periodic": "Intensidade dos efeitos periódicos (vibrações, ondas)",
+            "spring": "Efeitos de Mola",
+            "help_spring": "Intensidade dos efeitos de mola do jogo"
+        },
+        "gamepad": {
+            "title": "Mapeamento de Gamepad",
+            "axis_x": "Eixo X",
+            "axis_y": "Eixo Y",
+            "axis_z": "Eixo Z",
+            "axis_rz": "Eixo RZ",
+            "enabled": "Habilitado",
+            "inverted": "Invertido",
+            "deadzone": "Dead Zone",
+            "help_deadzone": "Zona morta central dos eixos analógicos",
+            "save": "Salvar Mapeamento"
+        },
+        "ui": {
+            "title": "Personalização da Interface",
+            "primary_color": "Cor Principal",
+            "font_size": "Tamanho da Fonte",
+            "help_font_size": "Tamanho base da fonte da interface"
+        },
+        "actions": {
+            "save_wheel": "Salvar Configurações",
+            "apply_wheel": "Aplicar ao Volante Agora"
+        },
+        "inputs": {
+            "title": "Entradas e Mapeamento"
+        }
+    },
+    "btn_edit_mapping": "Editar Mapeamento",
+    "axis_edit_title": "Editar Eixo",
+    "axis_custom_name": "Nome Personalizado",
+    "axis_joystick_mapping": "Mapeamento de Botão (Joystick)",
+    "axis_button_low": "Botão (Low)",
+    "axis_button_high": "Botão (High)",
+    "axis_keyboard_mapping": "Mapeamento de Tecla (Teclado)",
+    "axis_start": "Tecla (Low)",
+    "axis_end": "Tecla (High)",
+    "axis_key_low": "Tecla (Low)",
+    "axis_key_high": "Tecla (High)",
+    "modal_save": "Salvar",
+    "modal_cancel": "Cancelar",
+    "setting_min_help": "Calibração de hardware (em breve)",
+    "option_none": "Nenhum",
+    "axis_mapping_hint": "Define quais teclas ou botões são acionados quando o eixo atinge os extremos.",
+    "axis_names": {
+        "wheel": "Volante",
+        "throttle": "Acelerador",
+        "brake": "Freio",
+        "clutch": "Embreagem",
+        "aux": "Aux"
+    },
+    "axis_labels": {
+        "x_wheel": "Eixo X (Volante)",
+        "generic": "Eixo {n}"
+    }
+}

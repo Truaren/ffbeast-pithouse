@@ -7,7 +7,7 @@
   position: relative; // anchor for the floating info panel
 
   // Floating info panel — drops below the label row, always within viewport
-  .info_panel {
+  .info_popup_wrapper {
     position: absolute;
     top: 2.5rem; // appears just below the label+controls row
     right: 0;
@@ -32,7 +32,7 @@
 
     span {
       font-size: 0.8rem;
-      color: #444;
+      color: var(--text-secondary);
       font-weight: 500;
       letter-spacing: -0.2px;
 
@@ -243,7 +243,7 @@
       justify-content: space-between;
       margin-top: 2px;
       font-size: 0.75rem;
-      color: #999;
+      color: var(--text-secondary);
       font-weight: 500;
       user-select: none;
 

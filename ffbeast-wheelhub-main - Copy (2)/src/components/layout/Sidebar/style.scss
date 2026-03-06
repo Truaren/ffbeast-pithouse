@@ -1,0 +1,90 @@
+@use "../../../styles/colors" as *;
+
+.sidebar {
+  width: 4rem;
+  padding: 0.3rem;
+  margin-left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  align-self: flex-start;
+
+  .bottom {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.8rem;
+      background-color: var(--bg-secondary);
+      padding: 0.5rem;
+      border-radius: 1rem;
+
+      .navlink {
+        cursor: pointer;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        width: 3rem;
+        aspect-ratio: 1 / 1;
+        border-radius: 0.8rem;
+        display: grid;
+        place-items: center;
+        text-decoration: none;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &.active {
+          background-color: var(--accent);
+          i {
+            color: var(--bg-secondary);
+          }
+        }
+
+        &:not(.active):hover {
+          background-color: var(--border);
+        }
+
+        &:not(.active):active {
+          scale: 0.9;
+
+          i {
+            scale: 1.1;
+          }
+        }
+
+        i {
+          font-size: 1rem;
+          color: var(--text-primary);
+          transition: 0.2s ease-in-out;
+        }
+      }
+    }
+
+    .settings_button {
+      background-color: var(--bg-secondary);
+      width: 3.5rem;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      border-radius: 0.8rem;
+      text-decoration: none;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      transition: 0.2s ease-in-out;
+
+      i {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+      }
+    }
+  }
+}

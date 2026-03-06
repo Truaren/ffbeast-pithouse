@@ -1,0 +1,188 @@
+/* =========================================================
+   THEME TOKENS
+   ========================================================= */
+
+/* ---------- Dark Base ---------- */
+$dark-bg-primary: #0e0e0e;
+$dark-bg-secondary: #121212;
+$dark-border: #ffffff12;
+$dark-button: #161616;
+$dark-text-primary: #ffffff;
+$dark-text-secondary: #aaaaaa;
+
+/* ---------- Light Base ---------- */
+$light-bg-primary: #ffffff;
+$light-bg-secondary: #f6f6f6;
+$light-border: #e0e0e0;
+$light-button: #f2f2f2;
+$light-text-primary: #111111;
+$light-text-secondary: #666666;
+
+/* ---------- Accent Palette ---------- */
+$accent-red: #e63f39;
+$accent-orange: #e46008;
+$accent-blue: #3b82f6;
+$accent-green: #22c55e;
+$accent-purple: #a855f7;
+$accent-teal: #14b8a6;
+$accent-rose: #f43f5e;
+$accent-slate: #64748b;
+$accent-neutral: #9ca3af;
+$accent-warm: #b45309;
+$accent-sage: #4d7c6f;
+
+/* =========================================================
+   DEFAULT THEME (DARK)
+   ========================================================= */
+
+:root {
+  --accent: #{$accent-red};
+
+  --bg-primary: #{$dark-bg-primary};
+  --bg-secondary: #{$dark-bg-secondary};
+
+  --border: #{$dark-border};
+  --button: #{$dark-button};
+
+  --text-primary: #{$dark-text-primary};
+  --text-secondary: #{$dark-text-secondary};
+}
+/* =========================================================
+   DARK VARIANTS (ACCENT ONLY)
+   ========================================================= */
+
+[data-theme="dark-orange"],
+[data-theme="dark-blue"],
+[data-theme="dark-green"],
+[data-theme="dark-purple"],
+[data-theme="dark-teal"],
+[data-theme="dark-rose"],
+[data-theme="dark-slate"],
+[data-theme="dark-carbon"] {
+  --border: #{$dark-border};
+}
+
+[data-theme="dark-orange"] {
+  --accent: #{$accent-orange};
+}
+[data-theme="dark-blue"] {
+  --accent: #{$accent-blue};
+}
+[data-theme="dark-green"] {
+  --accent: #{$accent-green};
+}
+[data-theme="dark-purple"] {
+  --accent: #{$accent-purple};
+}
+[data-theme="dark-teal"] {
+  --accent: #{$accent-teal};
+}
+[data-theme="dark-rose"] {
+  --accent: #{$accent-rose};
+}
+[data-theme="dark-slate"] {
+  --accent: #{$accent-slate};
+}
+[data-theme="dark-carbon"] {
+  --accent: #{$accent-neutral};
+}
+
+/* =========================================================
+   OLED (TRUE BLACK)
+   ========================================================= */
+
+[data-theme="oled"],
+[data-theme="oled-red"] {
+  --accent: #{$accent-red};
+
+  --bg-primary: #000000;
+  --bg-secondary: #050505;
+
+  --border: #ffffff18;
+  --button: #0b0b0b;
+
+  --text-primary: #ffffff;
+  --text-secondary: #999999;
+}
+
+[data-theme="oled-blue"] {
+  --accent: #{$accent-blue};
+  --border: #ffffff18;
+}
+
+/* =========================================================
+   LIGHT THEME
+   ========================================================= */
+
+[data-theme="light"] {
+  --accent: #{$accent-red};
+
+  --bg-primary: #{$light-bg-primary};
+  --bg-secondary: #{$light-bg-secondary};
+
+  --border: #{$light-border};
+  --button: #{$light-button};
+
+  --text-primary: #{$light-text-primary};
+  --text-secondary: #{$light-text-secondary};
+}
+
+/* =========================================================
+   LIGHT VARIANTS
+   ========================================================= */
+
+[data-theme="light-warm"] {
+  --accent: #{$accent-warm};
+
+  --bg-primary: #fdf6ee;
+  --bg-secondary: #f6efe6;
+
+  --border: #e5dccf;
+  --button: #f1e9dd;
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+}
+
+/* =========================================================
+   SOFT / LOW-CONTRAST LIGHT
+   ========================================================= */
+
+[data-theme="light-soft"] {
+  --accent: #{$accent-red};
+
+  --bg-primary: #fafafa;
+  --bg-secondary: #f0f0f0;
+
+  --border: #dddddd;
+  --button: #eeeeee;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #777777;
+}
+
+[data-theme="light-muted"] {
+  --accent: #6b7280;
+
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ededed;
+
+  --border: #d4d4d4;
+  --button: #e8e8e8;
+
+  --text-primary: #262626;
+  --text-secondary: #737373;
+}
+
+[data-theme="light-sage"] {
+  --accent: #{$accent-sage};
+
+  --bg-primary: #f6faf8;
+  --bg-secondary: #eef5f2;
+
+  --border: #d8e3dd;
+  --button: #e6f0ea;
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+}

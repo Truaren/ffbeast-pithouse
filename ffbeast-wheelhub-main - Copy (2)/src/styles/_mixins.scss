@@ -1,0 +1,21 @@
+@mixin hover_scale_transition {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    scale: 1.05;
+  }
+  &:active {
+    scale: 0.95;
+  }
+}
+
+@mixin hover_opacity_transition {
+  transition: all 0.2s ease-in;
+
+  &:hover {
+    opacity: 80%;
+  }
+  &:active {
+    opacity: 60%;
+  }
+}

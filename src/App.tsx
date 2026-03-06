@@ -3,16 +3,30 @@ import { HashRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { MainLayout, Sidebar, Topbar } from "@components/layout";
-import { ScrollToTop } from "@components/utils";
+import { AutoProfileWatcher, ScrollToTop } from "@components/utils";
 import { ConnectionPage, UnsupportedBrowser } from "@pages";
 import { WheelApi } from "@shubham0x13/ffbeast-wheel-webhid-api";
 
-import { useProfileStore } from "@/stores";
+import { UpdateModal } from "@/components/ui/UpdateModal/UpdateModal";
+import { useAppPreferencesStore, useProfileStore } from "@/stores";
+import { useUpdateStore } from "@/stores/updateStore";
 
 import "./styles/global.scss";
 
 const App = () => {
   const { profiles, activeProfile, setActiveProfile } = useProfileStore();
+  const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } = useUpdateStore();
+  const { preferences } = useAppPreferencesStore();
+
+  // Check for updates on startup
+  useEffect(() => {
+    if (!hasCheckedOnStartup) {
+      if (preferences.autoCheckUpdates !== false) {
+        void checkForUpdate();
+      }
+      setHasCheckedOnStartup(true);
+    }
+  }, [hasCheckedOnStartup, checkForUpdate, setHasCheckedOnStartup, preferences.autoCheckUpdates]);
 
   // Auto-load default profile on startup
   useEffect(() => {
@@ -35,6 +49,8 @@ const App = () => {
 
   return (
     <>
+      <AutoProfileWatcher />
+      <UpdateModal />
       <Toaster
         position="top-center"
         toastOptions={{

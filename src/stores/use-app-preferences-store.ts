@@ -30,7 +30,12 @@ interface AppPreferencesActions {
   setPedalName: (name: string) => void;
   setPedalImage: (file: File) => Promise<void>;
   togglePedalVisibility: (pedal: "Throttle" | "Brake" | "Clutch") => void;
+  togglePedalInversion: (pedal: "Throttle" | "Brake" | "Clutch") => void;
   setPedalBinding: (pedal: "Throttle" | "Brake" | "Clutch", axisIndex: number) => void;
+  setAutoCheckUpdates: (val: boolean) => void;
+  addAutoProfile: (exeName: string, profileId: string) => void;
+  removeAutoProfile: (exeName: string) => void;
+  setSidebarConfig: (config: { id: string; visible: boolean; order: number }[]) => void;
   replacePreferences: (preferences: AppPreferences) => void;
 }
 
@@ -163,6 +168,21 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
           });
         },
 
+        togglePedalInversion: (pedal) => {
+          set((state) => {
+            const inverted = state.preferences.invertedPedals || [];
+            const newInverted = inverted.includes(pedal)
+              ? inverted.filter((p) => p !== pedal)
+              : [...inverted, pedal];
+            return {
+              preferences: {
+                ...state.preferences,
+                invertedPedals: newInverted,
+              },
+            };
+          });
+        },
+
         setPedalBinding: (pedal, axisIndex) => {
           set((state) => ({
             preferences: {
@@ -171,6 +191,50 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
                 ...(state.preferences.pedalBindings || {}),
                 [pedal]: axisIndex,
               },
+            },
+          }));
+        },
+
+        setAutoCheckUpdates: (val) => {
+          set((state) => ({
+            preferences: {
+              ...state.preferences,
+              autoCheckUpdates: val,
+            },
+          }));
+        },
+
+        addAutoProfile: (exeName, profileId) => {
+          set((state) => {
+            const profiles = state.preferences.autoProfiles || [];
+            // Remove existing mapping for this exe if it exists, then add the new one
+            const filtered = profiles.filter((p) => p.exeName.toLowerCase() !== exeName.toLowerCase());
+            return {
+              preferences: {
+                ...state.preferences,
+                autoProfiles: [...filtered, { exeName, profileId }],
+              },
+            };
+          });
+        },
+
+        removeAutoProfile: (exeName) => {
+          set((state) => {
+            const profiles = state.preferences.autoProfiles || [];
+            return {
+              preferences: {
+                ...state.preferences,
+                autoProfiles: profiles.filter((p) => p.exeName.toLowerCase() !== exeName.toLowerCase()),
+              },
+            };
+          });
+        },
+
+        setSidebarConfig: (config) => {
+          set((state) => ({
+            preferences: {
+              ...state.preferences,
+              sidebarConfig: config,
             },
           }));
         },

@@ -1,0 +1,18 @@
+[[games]]
+id = "test-game"
+name = "Exemplo de Jogo"
+path = "C:/Windows/System32/calc.exe"
+arguments = []
+environment_vars = {}
+dll_overrides = []
+use_compat_layer = false
+
+[[profiles]]
+id = "default"
+name = "Perfil Padrão"
+motion_range = 900
+total_force = 100
+dynamic_dampening = 20
+static_dampening = 10
+power_limit = 100
+braking_limit = 100

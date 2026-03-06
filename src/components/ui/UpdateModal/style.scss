@@ -1,0 +1,105 @@
+.update_modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.update_modal_content {
+  background-color: var(--surface-1);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: modalEnter 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.update_modal_header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+  }
+
+  .close_btn {
+    padding: 8px;
+    height: auto;
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.update_modal_body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+
+  .update_subtitle {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+  }
+
+  .update_changelog {
+    background-color: var(--surface-2);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: inherit;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.update_modal_footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

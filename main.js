@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell } from "electron";
 import path from "path";
 import fs from "fs";
+import { exec } from "child_process";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,8 +40,14 @@ function saveSettings() {
   }
 }
 
+function getAppIcon() {
+  return app.isPackaged
+    ? path.join(__dirname, "dist", "logo.png")
+    : path.join(__dirname, "public", "logo.png");
+}
+
 function createTray() {
-  const iconPath = path.join(__dirname, "public", "logo.png");
+  const iconPath = getAppIcon();
   const icon = nativeImage
     .createFromPath(iconPath)
     .resize({ width: 16, height: 16 });
@@ -49,7 +56,7 @@ function createTray() {
   const updateMenu = () => {
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: "FFBeast Pit House 1.0",
+        label: `FFBeast Pit House ${app.getVersion()}`,
         enabled: false,
       },
       { type: "separator" },
@@ -71,7 +78,7 @@ function createTray() {
         },
       },
     ]);
-    tray.setToolTip("FFBeast Pit House 1.0");
+    tray.setToolTip(`FFBeast Pit House ${app.getVersion()}`);
     tray.setContextMenu(contextMenu);
   };
 
@@ -95,7 +102,7 @@ function createWindow() {
     height: 800,
     resizable: false,
     maximizable: false,
-    icon: path.join(__dirname, "public", "logo.png"),
+    icon: getAppIcon(),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -150,10 +157,63 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, "dist", "index.html"));
   }
+
+  // Intercept all requests for new windows and route them to default OS browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
 }
 
 // IPC: renderer asks for current settings
 ipcMain.handle("get-app-settings", () => appSettings);
+
+// IPC: select an executable file via dialog
+ipcMain.handle("select-exe-file", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Game Executable",
+    filters: [{ name: "Executables", extensions: ["exe"] }],
+    properties: ["openFile"],
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    return path.basename(result.filePaths[0]);
+  }
+  return null;
+});
+
+// IPC: get running processes for Auto-Profiles
+ipcMain.handle("get-running-processes", async () => {
+  return new Promise((resolve) => {
+    if (process.platform !== "win32") {
+      resolve([]);
+      return;
+    }
+
+    // Use tasklist to get running processes, output in CSV without headers
+    exec("tasklist /fo csv /nh", (error, stdout) => {
+      if (error) {
+        console.error("Failed to list processes:", error);
+        resolve([]);
+        return;
+      }
+
+      const processes = new Set();
+      // Parse CSV output: "Image Name","PID",...
+      const lines = stdout.split("\n");
+      for (const line of lines) {
+        const parts = line.split('","');
+        if (parts.length > 0) {
+          let exeName = parts[0].replace('"', '').trim();
+          if (exeName) {
+            processes.add(exeName.toLowerCase());
+          }
+        }
+      }
+      resolve(Array.from(processes));
+    });
+  });
+});
 
 // IPC: renderer sets minimize-to-tray
 ipcMain.handle("set-minimize-to-tray", (_event, value) => {
@@ -217,15 +277,29 @@ ipcMain.handle("load-preferences", () => {
   return null;
 });
 
-app.whenReady().then(() => {
-  loadSettings();
-  createWindow();
-  createTray();
+const gotTheLock = app.requestSingleInstanceLock();
 
-  app.on("activate", function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
   });
-});
+
+  app.whenReady().then(() => {
+    loadSettings();
+    createWindow();
+    createTray();
+
+    app.on("activate", function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+}
 
 app.on("window-all-closed", function () {
   if (process.platform !== "darwin" && !appSettings.minimizeToTray) app.quit();

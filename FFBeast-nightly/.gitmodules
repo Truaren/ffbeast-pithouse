@@ -1,0 +1,3 @@
+[submodule "libs/usbd-human-interface-device"]
+	path = libs/usbd-human-interface-device
+	url = https://github.com/dlkj/usbd-human-interface-device.git

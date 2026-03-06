@@ -1,0 +1,34 @@
+    Checking ffbeast-launcher v0.1.0 (C:\Users\zoio\Projetos\FFBeast\ffbeast-launcher\src-tauri)
+error[E0599]: no method named `emit` found for struct `AppHandle<R>` in the current scope
+   --> src\lib.rs:45:40
+    |
+ 45 |                         let _ = handle.emit("wheel-status", status);
+    |                                        ^^^^
+    |
+   ::: C:\Users\zoio\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-2.9.5\src\lib.rs:952:6
+    |
+952 |   fn emit<S: Serialize + Clone>(&self, event: &str, payload: S) -> Result<()> {
+    |      ---- the method is available for `AppHandle` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: there is a method `exit` with a similar name, but with different arguments
+   --> C:\Users\zoio\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tauri-2.9.5\src\app.rs:534:3
+    |
+534 |   pub fn exit(&self, exit_code: i32) {
+    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: trait `Emitter` which provides `emit` is implemented but not in scope; perhaps you want to import it
+    |
+  1 + use tauri::Emitter;
+    |
+
+warning: unused import: `tauri::Manager`
+ --> src\lib.rs:9:5
+  |
+9 | use tauri::Manager;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `ffbeast-launcher` (lib) generated 1 warning
+error: could not compile `ffbeast-launcher` (lib) due to 1 previous error; 1 warning emitted

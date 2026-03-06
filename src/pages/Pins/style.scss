@@ -1,0 +1,107 @@
+// ─── Pins Page ────────────────────────────────────────────────────────────────
+
+.pins_page {
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pins_header_note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(var(--accent-rgb, 99,102,241), 0.08);
+  border: 1px solid rgba(var(--accent-rgb, 99,102,241), 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+
+  i { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+  strong { color: var(--text-primary); }
+}
+
+.pins_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  flex: 1;
+  align-content: start;
+}
+
+.pin_card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+}
+
+.pin_card_top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pin_badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--border);
+  padding: 0.15rem 0.45rem;
+  border-radius: 99px;
+}
+
+.pin_status_dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+
+  &.active {
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+  }
+}
+
+.pin_select {
+  width: 100%;
+  background: var(--input-bg, rgba(0,0,0,0.05));
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover, &:focus { border-color: var(--accent); }
+
+  option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+.pin_desc {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  min-height: 2.2rem;
+}

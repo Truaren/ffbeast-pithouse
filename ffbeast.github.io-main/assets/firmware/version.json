@@ -1,0 +1,43 @@
+{
+  "commander": {
+    "version": 24719,
+    "min_supported_fw": 240719,
+    "whats_new": [
+    ]
+  },
+  "fw": {
+    "version": 240719,
+    "whats_new": [
+    ]
+  },
+  "RC": {
+    "setup": {
+      "release_year": 24,
+      "release_version": 1,
+      "release_patch": 0
+    },
+    "commander": {
+      "release_year": 24,
+      "release_version": 1,
+      "release_patch": 0
+    }
+  },
+  "wheel": {
+    "release_type": "RC",
+    "release_major": 24,
+    "release_minor": 1,
+    "release_patch": 5
+  },
+  "wheel_firmware": {
+    "release_type": "RC",
+    "release_major": 24,
+    "release_minor": 1,
+    "release_patch": 5
+  },
+  "flight_controls": {
+    "release_type": "RC",
+    "release_major": 25,
+    "release_minor": 1,
+    "release_patch": 4
+  }
+}

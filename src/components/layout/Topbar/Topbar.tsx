@@ -1,17 +1,17 @@
 import "./style.scss";
 
-import logo from "@assets/steering-wheel.png";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
-import { ProfilePanel } from "@/components/ui";
+import { ProfilePanel, DonateModal } from "@/components/ui";
 import { useProfileStore, useWheelStore } from "@/stores";
 import { confirmToast } from "@/utils/toast";
 
 export const Topbar = () => {
   const { activeProfile, isDirty } = useProfileStore();
   const [showProfiles, setShowProfiles] = useState(false);
+  const [showDonate, setShowDonate] = useState(false);
 
   const activeStats = activeProfile
     ? {
@@ -57,21 +57,12 @@ export const Topbar = () => {
 
   return (
     <div className="topbar">
-      <button
-        className="logo_button"
-        onClick={() => {
-          window.location.href = "/";
-        }}
-      >
-        <img src={logo} alt="FFB" />
-      </button>
-
       <div className="left">
         <div className="title">
           <h1>FFBeast Pit House</h1>
         </div>
         <div className="info">
-          <span className="version">v1.0</span>
+          <span className="version">v{__APP_VERSION__}</span>
         </div>
       </div>
 
@@ -102,6 +93,21 @@ export const Topbar = () => {
         >
           <i className="icon fi fi-sr-floppy-disks" />
           Save &amp; Reboot
+        </button>
+
+        <button
+          className="action_btn donate_btn"
+          onClick={() => setShowDonate(true)}
+          title="Support the project or request a feature!"
+          style={{ 
+            background: 'linear-gradient(45deg, #ff4757, #ff6b81)', 
+            color: 'white', 
+            border: 'none', 
+            boxShadow: '0 2px 10px rgba(255, 71, 87, 0.3)' 
+          }}
+        >
+          <i className="icon fi fi-sr-heart" />
+          Donate
         </button>
       </div>
 
@@ -139,6 +145,8 @@ export const Topbar = () => {
           <ProfilePanel onClose={() => setShowProfiles(false)} />
         )}
       </div>
+
+      {showDonate && <DonateModal onClose={() => setShowDonate(false)} />}
     </div>
   );
 };

@@ -1,0 +1,58 @@
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
+
+:root {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+    --primary-color: #7c3aed;
+    --primary-hover: #6d28d9;
+    --bg-color: #f5f3ff;
+    --card-bg: #ffffff;
+    --text-color: #1e1b4b;
+    --border-color: #ddd6fe;
+    --accent-color: #c084fc;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #0f172a;
+        --card-bg: #1e293b;
+        --text-color: #f1f5f9;
+        --border-color: #334155;
+        --primary-color: #8b5cf6;
+        --primary-hover: #a78bfa;
+    }
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+#app {
+    min-height: 100vh;
+    width: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+h1,
+h2,
+h3 {
+    margin: 0;
+}
+
+button {
+    font-family: inherit;
+}

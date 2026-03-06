@@ -1,4 +1,4 @@
-import { BasePage, Dashboard, EffectSettings, License, Settings } from "@pages";
+import { AutoProfiles, Axes, BasePage, Buttons, Dashboard, EffectSettings, License, Monitoring, Pins, Protocol, Settings } from "@pages";
 import type { ComponentType } from "react";
 
 export interface RouteConfig {
@@ -24,7 +24,6 @@ export const ROUTES: Record<string, RouteConfig> = {
     component: BasePage,
     fullWidth: true,
   },
-
   effects: {
     path: "/effects",
     title: "Effects",
@@ -32,12 +31,53 @@ export const ROUTES: Record<string, RouteConfig> = {
     component: EffectSettings,
     fullWidth: true,
   },
-
+  monitoring: {
+    path: "/monitoring",
+    title: "Monitoring",
+    icon: "icon fi fi-sr-dashboard",
+    component: Monitoring,
+    fullWidth: true,
+  },
+  protocol: {
+    path: "/protocol",
+    title: "Protocol",
+    icon: "icon fi fi-sr-data-transfer",
+    component: Protocol,
+    fullWidth: true,
+  },
+  pins: {
+    path: "/pins",
+    title: "Pins",
+    icon: "icon fi fi-sr-workflow",
+    component: Pins,
+    fullWidth: true,
+  },
+  buttons: {
+    path: "/buttons",
+    title: "Buttons",
+    icon: "icon fi fi-sr-menu-dots-vertical",
+    component: Buttons,
+    fullWidth: true,
+  },
+  axes: {
+    path: "/axes",
+    title: "Axes",
+    icon: "icon fi fi-sr-arrows-alt-h",
+    component: Axes,
+    fullWidth: true,
+  },
   license: {
     path: "/license",
     title: "License",
     icon: "icon fi fi-sr-key",
     component: License,
+  },
+  autoProfiles: {
+    path: "/autoprofiles",
+    title: "Auto Profiles",
+    icon: "icon fi fi-sr-gamepad",
+    component: AutoProfiles,
+    fullWidth: true,
   },
   settings: {
     path: "/settings",

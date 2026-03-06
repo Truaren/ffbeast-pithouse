@@ -1,0 +1,685 @@
+
+
+.moza_dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2rem; // Slightly larger gap for cleaner look
+  padding: 2rem; // Larger padding
+  height: 100%;
+  width: 100%;
+  color: #333; // MOZA uses a light theme generally, but we'll try to adapt to app theme if dark
+  
+  // Try to inherit from app theme variables if we are in dark mode
+  :global(.dark) & {
+    color: var(--text-primary);
+  }
+
+  .panel {
+    background: #ffffff;
+    border-radius: 16px; // Apple-like soft corners
+    padding: 2rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); // Softer, deeper shadows
+    display: flex;
+    flex-direction: column;
+    height: 100%; // Ensure panel takes full height of its grid cell
+    position: relative;
+
+    :global(.dark) & {
+      background: var(--bg-primary);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    // Make slider labels dark
+    .setting_option {
+      position: relative;
+
+      .option_title span {
+        color: #444;
+        :global(.dark) & { color: var(--text-secondary); }
+      }
+    }
+  }
+
+  .panel_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #666;
+      margin: 0;
+
+      :global(.dark) & {
+        color: var(--text-secondary);
+      }
+    }
+
+    .more_btn {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      background: #f0f2f5;
+      color: #888;
+      border: none;
+
+      :global(.dark) & {
+        background: var(--button);
+      }
+    }
+  }
+
+  /* LEFT PANEL - WHEEL */
+  .wheel_panel {
+    grid-column: 1;
+    grid-row: 1 / span 2; // Span 2 rows to match the tall left container
+    align-items: center;
+
+    .panel_header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2.wheel_name_display {
+        font-size: 1.25rem;
+        color: #888;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s;
+        &:hover {
+          color: #555;
+          :global(.dark) & { color: #fff; }
+        }
+      }
+
+      .wheel_name_input {
+        font-size: 1.25rem;
+        color: #333;
+        font-weight: 500;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        background: transparent;
+        outline: none;
+        width: 60%;
+        :global(.dark) & { color: #eee; border-color: #555; }
+        &:focus {
+           border-color: var(--accent);
+        }
+      }
+    }
+
+    .angle_display {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem; // Clear space before the wheel
+      z-index: 10;
+    }
+
+    .wheel_image_container {
+      position: relative;
+      width: 100%;
+      height: 260px; // Shrunk from 350px so it fits without scrolling
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0; // Remove negative margin
+      margin-bottom: 1rem;
+      
+      .wheel_img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; // Ensures any image fits neatly within the 350px max height box without distorting
+        transition: transform 0.1s ease-out;
+      }
+
+      // Inner wrapper that tightly hugs the actual image — hover/overlay is limited to this area only
+      .wheel_img_wrapper {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        flex-shrink: 0;
+
+        .wheel_img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          transition: transform 0.1s ease-out;
+        }
+
+        .upload_overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.35);
+          color: white;
+          border-radius: 12px;
+          cursor: pointer;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          i { font-size: 2rem; }
+          input { display: none; }
+        }
+
+        &:hover .upload_overlay {
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+    }
+
+    .angle_controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 0 1rem;
+      margin-top: auto; // Push to bottom
+
+      .angle_slider_header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .angle_label {
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: #444;
+          :global(.dark) & { color: #ccc; }
+        }
+
+        .center_btn {
+          border-radius: 6px;
+          padding: 6px 16px;
+          font-size: 0.85rem;
+          background: var(--accent);
+          color: white;
+          border: none;
+          cursor: pointer;
+          transition: background 0.2s;
+          &:hover {
+             opacity: 0.9;
+          }
+        }
+
+        .tooltip_icon {
+          color: #aaa;
+          margin-left: 0.5rem;
+        }
+      }
+
+      .angle_slider_row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+
+        .angle_min, .angle_max {
+          font-size: 0.85rem;
+          color: #777;
+        }
+
+        .slider_wrapper {
+          flex-grow: 1;
+          .radix-slider-track {
+            background-color: #e0e0e0;
+            :global(.dark) & { background-color: #333; }
+          }
+          .radix-slider-range {
+            background-color: var(--accent); // Match theme
+          }
+          .radix-slider-thumb {
+            border-color: var(--accent); // Match theme
+          }
+          // Slider component's ranges_text is redundant here — angle_min/max labels already show it
+          .ranges_text { display: none; }
+        }
+
+        .angle_input_box {
+          width: 60px;
+          text-align: center;
+          padding: 6px;
+          border-radius: 4px;
+          border: 1px solid #ddd;
+          background: #fafafa;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #333;
+          outline: none;
+
+          :global(.dark) & {
+            background: #222;
+            border-color: #444;
+            color: #eee;
+          }
+
+          &:focus {
+             border-color: var(--accent);
+             box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 200, 50, 50), 0.2);
+          }
+        }
+      }
+
+      .angle_presets {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+
+        .preset_btn {
+          flex: 1;
+          padding: 10px 0;
+          background: #f4f4f5;
+          border: none;
+          border-radius: 6px;
+          color: #555;
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          :global(.dark) & {
+            background: #2a2a2a;
+            color: #ccc;
+          }
+
+          &.active, &:hover {
+            background: var(--accent);
+            color: white;
+
+            :global(.dark) & {
+              background: var(--accent);
+              color: white;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* RIGHT COLUMN */
+  .right_column {
+    display: contents; // Remove standard column wrapper, use grid directly for panels
+  }
+
+  /* TOP RIGHT - BASE */
+  .base_panel {
+    grid-column: 2;
+    grid-row: 1;
+
+    .panel_header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2.base_name_display {
+        font-size: 1.25rem;
+        color: #888;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s;
+        &:hover {
+          color: #555;
+          :global(.dark) & { color: #fff; }
+        }
+      }
+
+      .base_name_input {
+        font-size: 1.25rem;
+        color: #333;
+        font-weight: 500;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        background: transparent;
+        outline: none;
+        width: 60%;
+        :global(.dark) & { color: #eee; border-color: #555; }
+        &:focus {
+           border-color: var(--accent);
+        }
+      }
+    }
+
+    .base_content {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+      gap: 2rem;
+      padding-bottom: 1rem;
+
+      .base_image_placeholder {
+        position: relative;
+        flex-shrink: 0;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .base_img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        .upload_overlay {
+          position: absolute;
+          inset: 0; // Cover the entire container
+          background: rgba(0, 0, 0, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+
+          input {
+            display: none;
+          }
+
+          i {
+            color: #fff;
+            font-size: 1.5rem;
+          }
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+
+      .base_controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .control_label {
+          font-weight: 500;
+          font-size: 0.9rem;
+        }
+
+        .slider_with_value {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          width: 100%;
+          
+          // Slider's built-in ranges_text is redundant — the slider_percent label is already shown
+          .ranges_text { display: none; }
+
+          .slider_percent {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            min-width: 40px;
+            
+            :global(.dark) & {
+               color: #ccc;
+            }
+          }
+        }
+
+        &.disabled_look {
+           .slider_percent {
+              opacity: 0.4;
+           }
+           .radix-slider-range {
+              background-color: #aaa !important;
+           }
+           .radix-slider-thumb {
+              border-color: #aaa !important;
+           }
+        }
+
+        .work_mode_toggle {
+          display: flex;
+          justify-content: flex-start; // Align to the left
+          align-items: center;
+          gap: 1rem;
+          margin-top: 1rem;
+          padding-left: 0.5rem; // Small indent so it visually matches the start of the slider line
+          font-weight: 500;
+          color: #888; // Neutral text color for the label
+          
+          :global(.dark) & {
+             color: #ccc;
+          }
+        }
+      }
+    }
+
+    .base_footer {
+      margin-top: auto;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+  }
+
+  /* BOTTOM RIGHT - PEDALS */
+  .pedals_panel {
+    grid-column: 2;
+    grid-row: 2;
+    
+    .panel_header {
+      .pedal_name_display {
+        margin: 0;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding-bottom: 2px;
+        transition: border 0.2s;
+        &:hover {
+          border-bottom: 1px dashed var(--accent);
+        }
+      }
+
+      .pedal_name_input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--accent);
+        color: inherit;
+        font-size: 1.1rem;
+        font-family: inherit;
+        font-weight: bold;
+        outline: none;
+        width: 150px;
+      }
+    }
+
+    .pedals_content {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+      gap: 2rem;
+
+      .pedals_image_placeholder {
+        flex-shrink: 0;
+        width: 140px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+
+        .pedal_img {
+          width: 120px;
+          height: 120px;
+          object-fit: contain;
+        }
+
+        .upload_overlay {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 120px;
+          height: 120px;
+          background: rgba(0, 0, 0, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: 0.2s ease;
+          
+          input[type="file"] {
+             display: none;
+          }
+          i {
+             color: #fff;
+             font-size: 1.5rem;
+          }
+          &:hover {
+             opacity: 1;
+          }
+        }
+
+        .status {
+          font-size: 0.8rem;
+          display: flex;
+          align-items: center;
+          gap: 0.2rem;
+          
+          &.disconnected {
+            color: #ef4444; // Red
+          }
+          .icon {
+            font-size: 0.5rem;
+          }
+        }
+      }
+
+      .pedals_sliders {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .pedal_row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          
+          &.hidden_pedal {
+            opacity: 0.6;
+            margin-bottom: -0.5rem; // Make it compact when hidden
+            .pedal_label {
+               font-style: italic;
+               text-decoration: line-through;
+            }
+          }
+
+          .pedal_label_container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .pedal_label {
+              font-size: 0.85rem;
+              color: #888;
+              font-weight: 500;
+            }
+
+            .hide_pedal_btn {
+              background: transparent;
+              border: none;
+              color: #888;
+              cursor: pointer;
+              padding: 0 4px;
+              display: flex;
+              align-items: center;
+              transition: color 0.2s;
+              
+              &:hover {
+                 color: var(--accent);
+              }
+            }
+          }
+
+          .pedal_control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .limit_btn {
+              background: transparent;
+              border: none;
+              color: #ccc;
+              font-size: 0.75rem;
+              padding: 0;
+              cursor: pointer;
+
+              &.disabled {
+                cursor: not-allowed;
+              }
+            }
+
+            .btn_bind {
+              padding: 2px 8px;
+              font-size: 0.75rem;
+              border-radius: 4px;
+              background: #f0f2f5;
+              color: #666;
+              border: none;
+              cursor: pointer;
+
+              &:hover {
+                 background: #e2e8f0;
+              }
+              :global(.dark) & {
+                 background: #333;
+                 color: #ccc;
+                 &:hover { background: #444; }
+              }
+            }
+
+            .binding_message {
+              flex: 1;
+              text-align: center;
+              font-size: 0.85rem;
+              color: var(--accent);
+              font-weight: 500;
+              animation: pulseText 1.5s infinite;
+            }
+
+            @keyframes pulseText {
+              0% { opacity: 0.5; }
+              50% { opacity: 1; }
+              100% { opacity: 0.5; }
+            }
+
+            .progress_track {
+              flex: 1;
+              height: 8px;
+              background: #f0f2f5;
+              border-radius: 4px;
+              overflow: hidden;
+
+              :global(.dark) & {
+                background: var(--button);
+              }
+
+              .progress_fill {
+                height: 100%;
+                background: var(--accent);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

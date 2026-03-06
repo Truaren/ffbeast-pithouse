@@ -15,11 +15,14 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = {
   pedalName: "Feel VR Pedals",
   pedalImageUrl: "",
   hiddenPedals: [],
+  invertedPedals: [],
   pedalBindings: {
     Throttle: 0,
     Brake: 1,
     Clutch: 2,
   },
+  autoCheckUpdates: true,
+  autoProfiles: [],
 };
 
 export const PROFILE_EXPORT_VERSION = 1;

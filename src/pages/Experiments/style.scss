@@ -1,0 +1,177 @@
+.experiments_page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.exp_card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  .exp_card_header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--card-header-bg, rgba(0,0,0,0.03));
+
+    i {
+      font-size: 1rem;
+      color: var(--accent);
+    }
+
+    h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+    }
+  }
+
+  .exp_card_body {
+    padding: 1.25rem;
+  }
+}
+
+.exp_badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--border);
+  color: var(--text-secondary);
+
+  &.connected, &.active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+    animation: pulse_badge 2s ease-in-out infinite;
+  }
+
+  &.disconnected {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+}
+
+@keyframes pulse_badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+// ─── Torque Meter ─────────────────────────────
+
+.torque_readout {
+  text-align: center;
+  margin-bottom: 1rem;
+
+  .torque_value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+
+    .torque_unit {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-left: 0.25rem;
+    }
+  }
+
+  .torque_sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+}
+
+.torque_bar_track {
+  position: relative;
+  height: 12px;
+  background: var(--border);
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  margin-bottom: 1rem;
+
+  .torque_bar_fill {
+    height: 100%;
+    transition: width 50ms linear;
+    border-radius: 6px;
+
+    &.left {
+      margin-left: auto;
+    }
+
+    &.right {
+      margin-right: auto;
+    }
+  }
+
+  .torque_center_tick {
+    position: absolute;
+    left: 50%;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: var(--text-secondary);
+    transform: translateX(-50%);
+  }
+}
+
+.torque_canvas {
+  width: 100%;
+  height: 80px;
+  border-radius: 6px;
+  background: var(--input-bg, rgba(0,0,0,0.04));
+  display: block;
+}
+
+// ─── Desc text ────────────────────────────────
+
+.exp_desc {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+
+  strong {
+    color: var(--text-primary);
+  }
+}
+
+// ─── Sliders group ────────────────────────────
+
+.exp_sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+
+  &.exp_sliders_disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+// ─── Buttons row ──────────────────────────────
+
+.exp_buttons_row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}

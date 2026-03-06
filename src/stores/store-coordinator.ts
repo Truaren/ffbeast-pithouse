@@ -85,8 +85,18 @@ export function initStoreCoordinator() {
         const { withProfileApplication } = useProfileStore.getState();
 
         await withProfileApplication(async () => {
-          // Update app state
-          replacePreferences(activeProfile.appPreferences);
+          // Merge app state: Keep global settings from current preferences, 
+          // only apply profile-specific settings (like pedal bindings, inversions) from the active profile.
+          const currentPrefs = useAppPreferencesStore.getState().preferences;
+          const profilePrefs = activeProfile.appPreferences;
+          
+          replacePreferences({
+            ...currentPrefs, // keep current global UI settings, auto-profiles, theme, etc
+            pedalBindings: profilePrefs.pedalBindings,
+            hiddenPedals: profilePrefs.hiddenPedals,
+            invertedPedals: profilePrefs.invertedPedals,
+          });
+
           setSettings(activeProfile.deviceSettings);
 
           // Push to device if connected

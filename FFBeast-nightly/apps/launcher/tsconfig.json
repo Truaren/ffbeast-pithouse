@@ -1,0 +1,54 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "strict": true,
+        "jsx": "preserve",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
+        "skipLibCheck": true,
+        "noEmit": true,
+        "types": [
+            "vite/client",
+            "node"
+        ],
+        "baseUrl": ".",
+        "paths": {
+            "@shared/*": [
+                "../../libs/shared-frontend/src/*"
+            ],
+            "vue": [
+                "./node_modules/vue"
+            ],
+            "vue-i18n": [
+                "./node_modules/vue-i18n"
+            ],
+            "@tauri-apps/api/*": [
+                "./node_modules/@tauri-apps/api/*"
+            ],
+            "@tauri-apps/api": [
+                "./node_modules/@tauri-apps/api"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "../../libs/shared-frontend/src/**/*.ts",
+        "../../libs/shared-frontend/src/**/*.vue"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        }
+    ]
+}

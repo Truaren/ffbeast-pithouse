@@ -1,0 +1,34 @@
+.button_comp {
+  padding: 0.8rem 1rem;
+  border-radius: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background-color: var(--button);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+
+  &.primary {
+    background-color: var(--accent);
+    color: #000;
+  }
+
+  &.secondary {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @include hover_opacity_transition;
+}

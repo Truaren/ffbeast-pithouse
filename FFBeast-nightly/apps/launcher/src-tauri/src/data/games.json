@@ -1,0 +1,59 @@
+[
+    {
+        "id": "assetto_corsa",
+        "name": "Assetto Corsa",
+        "paths": [
+            "assettocorsa/acs.exe",
+            "Assetto Corsa/acs.exe",
+            "assettocorsa/Content Manager.exe",
+            "Assetto Corsa/Content Manager.exe"
+        ],
+        "steamId": 244210,
+        "useCompatLayer": true
+    },
+    {
+        "id": "assetto_corsa_competizione",
+        "name": "Assetto Corsa Competizione",
+        "paths": [
+            "Assetto Corsa Competizione/AC2.exe"
+        ],
+        "steamId": 805550,
+        "useCompatLayer": true
+    },
+    {
+        "id": "automobilista_2",
+        "name": "Automobilista 2",
+        "paths": [
+            "Automobilista 2/AMS2.exe"
+        ],
+        "steamId": 1066890,
+        "useCompatLayer": true
+    },
+    {
+        "id": "beamng_drive",
+        "name": "BeamNG.drive",
+        "paths": [
+            "BeamNG.drive/Bin64/BeamNG.drive.x64.exe"
+        ],
+        "steamId": 284160,
+        "useCompatLayer": true
+    },
+    {
+        "id": "iracing",
+        "name": "iRacing",
+        "paths": [
+            "iRacing/ui/iRacingUI.exe"
+        ],
+        "steamId": 266410,
+        "useCompatLayer": true
+    },
+    {
+        "id": "rfactor_2",
+        "name": "rFactor 2",
+        "paths": [
+            "rFactor 2/Bin64/rFactor2.exe"
+        ],
+        "steamId": 365960,
+        "useCompatLayer": true
+    }
+]
