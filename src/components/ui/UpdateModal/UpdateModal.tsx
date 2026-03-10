@@ -1,6 +1,7 @@
-import { useUpdateStore } from "@/stores/updateStore";
-import { Button } from "@/components/ui/Button/Button";
 import "./style.scss";
+
+import { Button } from "@/components/ui/Button/Button";
+import { useUpdateStore } from "@/stores/updateStore";
 
 export const UpdateModal = () => {
   const { updateAvailable, setUpdateAvailable } = useUpdateStore();
@@ -12,15 +13,15 @@ export const UpdateModal = () => {
       <div className="update_modal_content">
         <div className="update_modal_header">
           <h2>New Version Available: {updateAvailable.version}</h2>
-          <Button 
-            variant="secondary" 
-            className="close_btn" 
+          <Button
+            variant="secondary"
+            className="close_btn"
             onClick={() => setUpdateAvailable(null)}
           >
             <i className="icon fi fi-rr-cross" />
           </Button>
         </div>
-        
+
         <div className="update_modal_body">
           <p className="update_subtitle">
             A new version of FFBeast Pit House is ready to download!
@@ -35,7 +36,7 @@ export const UpdateModal = () => {
           <Button variant="secondary" onClick={() => setUpdateAvailable(null)}>
             Later
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               window.open(updateAvailable.url, "_blank");
               setUpdateAvailable(null);

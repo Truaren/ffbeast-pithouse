@@ -7,6 +7,7 @@ export * from "./Dashboard";
 export * from "./EffectSettings";
 export * from "./License";
 export * from "./Monitoring";
+export * from "./Pedals";
 export * from "./Pins";
 export * from "./Protocol";
 export * from "./Settings";

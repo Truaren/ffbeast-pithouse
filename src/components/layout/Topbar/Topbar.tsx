@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
-import { ProfilePanel, DonateModal } from "@/components/ui";
+import { DonateModal, ProfilePanel } from "@/components/ui";
 import { useProfileStore, useWheelStore } from "@/stores";
 import { confirmToast } from "@/utils/toast";
 
@@ -17,7 +17,8 @@ export const Topbar = () => {
     ? {
         power: activeProfile.deviceSettings?.hardware?.powerLimit ?? 0,
         degrees: activeProfile.deviceSettings?.effects?.motionRange ?? 0,
-        intensity: activeProfile.deviceSettings?.effects?.totalEffectStrength ?? 0,
+        intensity:
+          activeProfile.deviceSettings?.effects?.totalEffectStrength ?? 0,
       }
     : null;
 
@@ -26,9 +27,11 @@ export const Topbar = () => {
   );
 
   const handleReboot = () => {
-    api.rebootController().catch((e: unknown) =>
-      toast.error("Reboot failed: " + (e as Error).message),
-    );
+    api
+      .rebootController()
+      .catch((e: unknown) =>
+        toast.error("Reboot failed: " + (e as Error).message),
+      );
   };
 
   const handleSaveAndReboot = () => {
@@ -99,11 +102,11 @@ export const Topbar = () => {
           className="action_btn donate_btn"
           onClick={() => setShowDonate(true)}
           title="Support the project or request a feature!"
-          style={{ 
-            background: 'linear-gradient(45deg, #ff4757, #ff6b81)', 
-            color: 'white', 
-            border: 'none', 
-            boxShadow: '0 2px 10px rgba(255, 71, 87, 0.3)' 
+          style={{
+            background: "linear-gradient(45deg, #ff4757, #ff6b81)",
+            color: "white",
+            border: "none",
+            boxShadow: "0 2px 10px rgba(255, 71, 87, 0.3)",
           }}
         >
           <i className="icon fi fi-sr-heart" />
@@ -118,7 +121,9 @@ export const Topbar = () => {
           title="Manage Profiles"
         >
           <i className="icon fi fi-sr-user" />
-          <span className="profile_name">{activeProfile ? activeProfile.name : "Select Profile"}</span>
+          <span className="profile_name">
+            {activeProfile ? activeProfile.name : "Select Profile"}
+          </span>
           {activeStats && (
             <span className="profile_stats">
               <span className="pstat">

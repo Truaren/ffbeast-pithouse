@@ -1,14 +1,25 @@
 import "./style.scss";
+
+import { ArrowDown, ArrowUp, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
-import { Button, Divider, ToggleSwitch } from "@/components/ui";
-import { ROUTES } from "@/routes";
+import { toast } from "sonner";
+import { useShallow } from "zustand/shallow";
+
+import { Button, Divider, InputBox, ToggleSwitch } from "@/components/ui";
 import { DEFAULT_APP_PREFERENCES } from "@/config";
-import { useAppPreferencesStore } from "@/stores";
+import { ROUTES } from "@/routes";
+import { useAppPreferencesStore, useWheelStore } from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
 import { THEMES } from "@/theme";
+import { formatSerialKey } from "@/utils";
 
-type TabType = "preferences" | "sidebar" | "feedback" | "about" | "disclaimer";
+type TabType =
+  | "preferences"
+  | "sidebar"
+  | "feedback"
+  | "about"
+  | "disclaimer"
+  | "license";
 
 interface Tab {
   id: TabType;
@@ -22,42 +33,79 @@ const tabs: Tab[] = [
   { id: "feedback", label: "Feedback" },
   { id: "about", label: "About" },
   { id: "disclaimer", label: "Disclaimer" },
+  { id: "license", label: "License" },
 ];
 
 export const Settings = () => {
-  const { preferences, setTheme, setAutoCheckUpdates, setSidebarConfig } = useAppPreferencesStore();
+  const { preferences, setTheme, setAutoCheckUpdates, setSidebarConfig } =
+    useAppPreferencesStore();
   const { checkForUpdate, isChecking, latestVersion } = useUpdateStore();
 
   const [activeTab, setActiveTab] = useState<TabType>("preferences");
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [startWithSystem, setStartWithSystem] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [serialKey, setSerialKey] = useState("");
+
+  const { api, isConnected, deviceId } = useWheelStore(
+    useShallow((state) => ({
+      api: state.api,
+      isConnected: state.isConnected,
+      deviceId: state.deviceId,
+    })),
+  );
 
   useEffect(() => {
     // Check if we are in Electron
-    const win = window as any;
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
     if (win.require) {
       const { ipcRenderer } = win.require("electron");
-      ipcRenderer.invoke("get-app-settings").then((settings: any) => {
-        setMinimizeToTray(settings.minimizeToTray);
-        setStartWithSystem(settings.startWithSystem);
+      void ipcRenderer.invoke("get-app-settings").then((settings: unknown) => {
+        const s = settings as {
+          minimizeToTray: boolean;
+          startWithSystem: boolean;
+        };
+        setMinimizeToTray(s.minimizeToTray);
+        setStartWithSystem(s.startWithSystem);
       });
     }
   }, []);
 
   const handleTrayToggle = (val: boolean) => {
     setMinimizeToTray(val);
-    const win = window as any;
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
     if (win.require) {
-      win.require("electron").ipcRenderer.invoke("set-minimize-to-tray", val);
+      void win
+        .require("electron")
+        .ipcRenderer.invoke("set-minimize-to-tray", val);
     }
   };
 
   const handleAutostartToggle = (val: boolean) => {
     setStartWithSystem(val);
-    const win = window as any;
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
     if (win.require) {
-      win.require("electron").ipcRenderer.invoke("set-start-with-system", val);
+      void win
+        .require("electron")
+        .ipcRenderer.invoke("set-start-with-system", val);
     }
   };
 
@@ -132,7 +180,7 @@ export const Settings = () => {
 
       <div className="desktop-settings" style={{ marginTop: "1.5rem" }}>
         <h3>Updates</h3>
-        
+
         <div className="setting-item">
           <div className="setting-info">
             <span className="setting-label">Auto Check for Updates</span>
@@ -151,7 +199,8 @@ export const Settings = () => {
           <div className="setting-info">
             <span className="setting-label">Application Version</span>
             <span className="setting-description">
-              Current: v{__APP_VERSION__} {latestVersion ? `| Latest: ${latestVersion}` : ""}
+              Current: v{__APP_VERSION__}{" "}
+              {latestVersion ? `| Latest: ${latestVersion}` : ""}
             </span>
           </div>
         </div>
@@ -161,9 +210,17 @@ export const Settings = () => {
         <Button onClick={() => checkForUpdate(true)} disabled={isChecking}>
           {isChecking ? "Checking..." : "Check for Updates"}
         </Button>
-        <Button 
-          variant={confirmReset ? "primary" : "secondary"} 
-          style={confirmReset ? { backgroundColor: "#ef4444", color: "white", borderColor: "#ef4444" } : {}}
+        <Button
+          variant={confirmReset ? "primary" : "secondary"}
+          style={
+            confirmReset
+              ? {
+                  backgroundColor: "#ef4444",
+                  color: "white",
+                  borderColor: "#ef4444",
+                }
+              : {}
+          }
           onClick={() => {
             if (confirmReset) {
               setTheme(DEFAULT_APP_PREFERENCES.theme);
@@ -183,26 +240,29 @@ export const Settings = () => {
   const renderSidebarContent = () => {
     // Current specific configurations or default unconfigured items
     let currentConfig = preferences.sidebarConfig ?? [];
-    
+
     // Auto-populate based on ROUTES if config is empty or missing items
-    const routeKeys = Object.keys(ROUTES).filter(k => k !== "settings");
-    
+    const routeKeys = Object.keys(ROUTES).filter((k) => k !== "settings");
+
     if (currentConfig.length !== routeKeys.length) {
-       const newConfig = routeKeys.map((k, index) => {
-         const existing = currentConfig.find(c => c.id === k);
-         return existing ?? { id: k, visible: true, order: index };
-       }).sort((a,b) => a.order - b.order);
-       currentConfig = newConfig;
+      const newConfig = routeKeys
+        .map((k, index) => {
+          const existing = currentConfig.find((c) => c.id === k);
+          return existing ?? { id: k, visible: true, order: index };
+        })
+        .sort((a, b) => a.order - b.order);
+      currentConfig = newConfig;
     }
 
     const moveItem = (index: number, direction: -1 | 1) => {
-      if (index + direction < 0 || index + direction >= currentConfig.length) return;
+      if (index + direction < 0 || index + direction >= currentConfig.length)
+        return;
       const newConfig = [...currentConfig];
       // Swap orders
       const tempOrder = newConfig[index].order;
       newConfig[index].order = newConfig[index + direction].order;
       newConfig[index + direction].order = tempOrder;
-      
+
       // Sort array by new order
       newConfig.sort((a, b) => a.order - b.order);
       setSidebarConfig(newConfig);
@@ -221,28 +281,77 @@ export const Settings = () => {
           Reorder and toggle visibility of left menu navigation items.
         </p>
         <Divider />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', maxWidth: '400px' }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+            marginTop: "1rem",
+            maxWidth: "400px",
+          }}
+        >
           {currentConfig.map((item, idx) => {
-            const route = ROUTES[item.id as keyof typeof ROUTES];
+            const route = ROUTES[item.id];
             if (!route) return null;
             return (
-              <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: item.visible ? 1 : 0.5 }}>
-                  <i className={route.icon} style={{ fontSize: '1.2rem', color: 'var(--accent)' }}/>
+              <div
+                key={item.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.75rem 1rem",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    opacity: item.visible ? 1 : 0.5,
+                  }}
+                >
+                  <i
+                    className={route.icon}
+                    style={{ fontSize: "1.2rem", color: "var(--accent)" }}
+                  />
                   <span style={{ fontWeight: 500 }}>{route.title}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                   <div title={item.visible ? "Hide" : "Show"}>
-                     <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} onClick={() => toggleVisibility(idx)}>
-                       {item.visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                     </Button>
-                   </div>
-                   <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} disabled={idx === 0} onClick={() => moveItem(idx, -1)}>
-                     <ArrowUp size={16} />
-                   </Button>
-                   <Button variant="secondary" style={{ padding: '0.25rem 0.5rem' }} disabled={idx === currentConfig.length - 1} onClick={() => moveItem(idx, 1)}>
-                     <ArrowDown size={16} />
-                   </Button>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div title={item.visible ? "Hide" : "Show"}>
+                    <Button
+                      variant="secondary"
+                      style={{ padding: "0.25rem 0.5rem" }}
+                      onClick={() => toggleVisibility(idx)}
+                    >
+                      {item.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                    </Button>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    style={{ padding: "0.25rem 0.5rem" }}
+                    disabled={idx === 0}
+                    onClick={() => moveItem(idx, -1)}
+                  >
+                    <ArrowUp size={16} />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    style={{ padding: "0.25rem 0.5rem" }}
+                    disabled={idx === currentConfig.length - 1}
+                    onClick={() => moveItem(idx, 1)}
+                  >
+                    <ArrowDown size={16} />
+                  </Button>
                 </div>
               </div>
             );
@@ -252,6 +361,38 @@ export const Settings = () => {
     );
   };
 
+  const handleFeedbackSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    data._captcha = "false";
+
+    try {
+      const res = await fetch(
+        "https://formsubmit.co/ajax/trueaaren@gmail.com",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
+
+      if (res.ok) {
+        toast.success("Feedback submitted successfully!");
+        form.reset();
+      } else {
+        toast.error("Failed to submit feedback. Please try again.");
+      }
+    } catch {
+      toast.error("Failed to submit feedback. Please check your connection.");
+    }
+  };
+
   const renderFeedbackContent = () => (
     <div className="settings-content">
       <h2>Provide Feedback</h2>
@@ -259,25 +400,95 @@ export const Settings = () => {
         Submit a bug report or feature request directly to the developer.
       </p>
       <Divider />
-      <form target="_blank" action="https://formsubmit.co/trueaaren@gmail.com" method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', maxWidth: '500px' }}>
-         {/* FormSubmit config: disables automatic captcha if you have a pro plan, but we'll include it. You can skip captcha via next field if you want */}
-         <input type="hidden" name="_subject" value="New Bug Report / Feature Request!" />
-         
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Who is writing (Name)</label>
-           <input type="text" name="name" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} placeholder="e.g. truearena" required />
-         </div>
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Description of Bug or Request</label>
-           <textarea name="message" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', minHeight: '120px', resize: 'vertical' }} placeholder="Explain the issue or functionality you'd like to see..." required />
-         </div>
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-           <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Contact Email</label>
-           <input type="email" name="email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} placeholder="Email Address" required />
-         </div>
-         <button type="submit" className="button_comp primary" style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}>
-           Submit Feedback
-         </button>
+      <form
+        onSubmit={handleFeedbackSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+          marginTop: "1rem",
+          maxWidth: "500px",
+        }}
+      >
+        <input
+          type="hidden"
+          name="_subject"
+          value="New Bug Report / Feature Request!"
+        />
+
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
+        >
+          <label
+            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
+          >
+            Who is writing (Name)
+          </label>
+          <input
+            type="text"
+            name="name"
+            style={{
+              padding: "0.75rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+            }}
+            placeholder="e.g. truearena"
+            required
+          />
+        </div>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
+        >
+          <label
+            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
+          >
+            Description of Bug or Request
+          </label>
+          <textarea
+            name="message"
+            style={{
+              padding: "0.75rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              minHeight: "120px",
+              resize: "vertical",
+            }}
+            placeholder="Explain the issue or functionality you'd like to see..."
+            required
+          />
+        </div>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
+        >
+          <label
+            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
+          >
+            Contact Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            style={{
+              padding: "0.75rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+            }}
+            placeholder="Email Address (Optional)"
+          />
+        </div>
+        <button
+          type="submit"
+          className="button_comp primary"
+          style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}
+        >
+          Submit Feedback
+        </button>
       </form>
     </div>
   );
@@ -398,6 +609,60 @@ export const Settings = () => {
     </div>
   );
 
+  const handleActivate = async () => {
+    if (!serialKey.trim() || serialKey.length !== 26) {
+      toast.error("Please enter a valid serial key.");
+      return;
+    }
+    if (!isConnected) {
+      toast.error("Please connect your device before activating the license.");
+      return;
+    }
+    const success = await api.sendFirmwareActivation(serialKey);
+    if (success) {
+      toast.success("Device activated successfully!");
+      setSerialKey("");
+    } else {
+      toast.error("Activation failed. Please check the key and try again.");
+    }
+  };
+
+  const renderLicenseContent = () => (
+    <div className="settings-content">
+      <h2>License & Activation</h2>
+      <p className="settings-description">
+        Activate your device with a serial key to unlock PRO features.
+      </p>
+      <Divider />
+      <div
+        className="settings"
+        style={{
+          marginTop: "1rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.75rem",
+          maxWidth: "420px",
+        }}
+      >
+        <InputBox
+          label="Device ID"
+          value={deviceId ?? "Device not connected"}
+          placeholder="00000000-00000000-00000000"
+          readonly
+        />
+        <InputBox
+          label="Serial Key"
+          placeholder="00000000-00000000-00000000"
+          value={serialKey}
+          onValueChange={(value) => setSerialKey(formatSerialKey(value))}
+        />
+        <Button variant="primary" onClick={() => handleActivate()}>
+          Activate
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case "preferences":
@@ -410,6 +675,8 @@ export const Settings = () => {
         return renderAboutContent();
       case "disclaimer":
         return renderDisclaimerContent();
+      case "license":
+        return renderLicenseContent();
       default:
         return null;
     }

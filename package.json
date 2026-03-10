@@ -1,34 +1,17 @@
 {
   "name": "ffbeast-pit-house",
-  "version": "2.0.0",
+  "version": "2.1.0",
+  "private": true,
   "description": "Pit House for FFBeast Wheel - Powerful configuration tool for racing simulators.",
   "author": "truearena",
-  "private": true,
   "type": "module",
   "main": "main.js",
-  "build": {
-    "appId": "com.ffbeast.pithouse",
-    "productName": "FFBeast Pit House",
-    "artifactName": "${productName} ${version}.${ext}",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "public/logo.png"
-    },
-    "files": [
-      "dist/**/*",
-      "main.js",
-      "package.json"
-    ]
-  },
   "scripts": {
+    "build": "tsc -b && vite build",
+    "build:win": "npm run build && electron-builder --win",
+    "dev": "vite",
     "electron": "electron .",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on tcp:5173 && cross-env NODE_ENV=development electron .\"",
-    "build:win": "npm run build && electron-builder --win",
-    "build": "tsc -b && vite build",
-    "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -54,6 +37,7 @@
     "chart.js": "^4.5.1",
     "idb-keyval": "^6.2.2",
     "lucide-react": "^0.577.0",
+    "node-hid": "^3.3.0",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
@@ -88,5 +72,26 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.ffbeast.pithouse",
+    "productName": "FFBeast Pit House",
+    "artifactName": "${productName} ${version}.${ext}",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/logo.png"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "package.json"
+    ],
+    "extraFiles": [
+      "pedals/**/*"
+    ],
+    "npmRebuild": false
   }
 }

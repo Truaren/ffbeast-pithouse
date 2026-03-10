@@ -1,0 +1,569 @@
+// ─── Page ─────────────────────────────────────────────
+.pedals_page {
+  --pedal-grid: rgba(100, 116, 139, 0.15);
+  --pedal-chart-bg: rgba(248, 250, 252, 0.7);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  height: 100%;
+  overflow-y: auto;
+
+  :global(.dark) & {
+    --pedal-grid: rgba(148, 163, 184, 0.09);
+    --pedal-chart-bg: rgba(15, 23, 42, 0.7);
+  }
+}
+
+// ─── Status Bar ───────────────────────────────────────
+.pedal_plugin_bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+
+  .pedal_plugin_status {
+    font-weight: 500;
+    color: var(--text-secondary);
+    &.connected {
+      color: var(--accent);
+    }
+  }
+  .pedal_plugin_select {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    padding: 0.12rem 0.35rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  }
+  .plugin_load_btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.18rem 0.55rem;
+    border-radius: 5px;
+    border: 1px solid var(--accent);
+    background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    &:hover:not(:disabled) {
+      background: rgba(var(--accent-rgb, 99, 102, 241), 0.22);
+    }
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    &.loading {
+      opacity: 0.7;
+    }
+    i {
+      font-size: 0.65rem;
+    }
+  }
+  .plugin_load_spinner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid rgba(var(--accent-rgb, 99, 102, 241), 0.3);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .show_all_btn {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+    border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.25);
+    border-radius: 5px;
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// ─── Grid ─────────────────────────────────────────────
+.pedals_grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  align-items: start; /* cards don't stretch to fill — kills empty space */
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ─── Card ─────────────────────────────────────────────
+.pedal_card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem;
+  transition: border-color 0.2s;
+
+  &.pedal_card_calibrating {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 99, 102, 241), 0.14);
+  }
+  &.pedal_card_collapsed {
+    gap: 0.35rem;
+  }
+  &.pedal_card_hidden {
+    opacity: 0.55;
+    border-style: dashed;
+    .pedal_hidden_label {
+      flex: 1;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      em {
+        font-style: italic;
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+// ─── Card Header ──────────────────────────────────────
+.pedal_card_header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 24px;
+  .pedal_dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+    cursor: default;
+  }
+  .live_pct {
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.card_header_actions {
+  display: flex;
+  gap: 2px;
+}
+.card_icon_btn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 3px;
+  border-radius: 4px;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+  &:hover {
+    opacity: 1;
+    background: var(--bg-primary);
+  }
+}
+
+.pedal_name_input {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 1px 5px;
+  outline: none;
+}
+
+// ─── Preset bar ───────────────────────────────────────
+.preset_bar_label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  opacity: 0.65;
+}
+
+.preset_bar {
+  display: flex;
+  gap: 3px;
+  .preset_btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 1px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.13s;
+    svg {
+      width: 26px;
+      height: 18px;
+      display: block;
+    }
+    &:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    &.active {
+      background: rgba(var(--accent-rgb, 99, 102, 241), 0.09);
+    }
+  }
+}
+
+// ─── Curve Editor ─────────────────────────────────────
+.curve_editor_wrap {
+  position: relative;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.curve_editor_svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+.curve_live_bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  z-index: 2;
+  transform: translateX(-50%);
+  transition: left 0.05s linear;
+}
+.curve_axis_x {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 4px 2px;
+  font-size: 0.58rem;
+  color: var(--text-secondary);
+  opacity: 0.55;
+  background: var(--card-bg);
+}
+
+// ─── Live bar ─────────────────────────────────────────
+.input_bar_track {
+  height: 5px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.input_bar_fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.04s linear;
+  min-width: 0;
+}
+
+// ─── Bottom Grid (reverse + DZ + calibrate compacted) ─
+.card_bottom_grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+  margin-top: 0.1rem;
+}
+
+.card_reverse_row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.toggle_switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle_slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: var(--border);
+    border-radius: 18px;
+    transition: 0.2s;
+    &::before {
+      content: "";
+      position: absolute;
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+  }
+  input:checked + .toggle_slider {
+    background: var(--accent);
+  }
+  input:checked + .toggle_slider::before {
+    transform: translateX(14px);
+  }
+}
+.toggle_state_txt {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+// ─── Deadzones ────────────────────────────────────────
+.dz_compact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.dz_row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dz_label {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  width: 42px;
+  flex-shrink: 0;
+}
+.dz_slider {
+  flex: 1;
+  height: 3px;
+  appearance: none;
+  background: var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: grab;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+}
+.dz_val {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+// ─── Calibrate ────────────────────────────────────────
+.calibrate_row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.cal_btn {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.22rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.13s;
+  &:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  &.calibrating {
+    animation: pulse_border 1.2s ease-in-out infinite;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+@keyframes pulse_border {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 99, 102, 241), 0.3);
+  }
+}
+.cal_debug_row {
+  font-size: 0.6rem;
+  opacity: 0.45;
+  font-variant-numeric: tabular-nums;
+}
+
+// ─── Calibration Modal ────────────────────────────────
+.cal_modal_overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.cal_modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 1.3rem;
+  min-width: 360px;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.cal_modal_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  .cal_modal_close {
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+.cal_modal_desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+.cal_live_bar_track {
+  height: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.cal_live_bar_fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.05s linear;
+  min-width: 0;
+}
+.cal_stats {
+  display: flex;
+  gap: 0.75rem;
+  .cal_stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.4rem 0.6rem;
+    span {
+      font-size: 0.6rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    strong {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+.cal_modal_btns {
+  display: flex;
+  gap: 0.4rem;
+  .cal_cancel_btn {
+    flex: 1;
+    padding: 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+  .cal_done_btn {
+    flex: 2;
+    padding: 0.45rem;
+    border: none;
+    border-radius: 7px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: opacity 0.15s;
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    &:not(:disabled):hover {
+      opacity: 0.85;
+    }
+  }
+}

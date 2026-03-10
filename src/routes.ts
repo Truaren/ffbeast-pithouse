@@ -1,4 +1,16 @@
-import { AutoProfiles, Axes, BasePage, Buttons, Dashboard, EffectSettings, License, Monitoring, Pins, Protocol, Settings } from "@pages";
+import {
+  AutoProfiles,
+  Axes,
+  BasePage,
+  Buttons,
+  Dashboard,
+  EffectSettings,
+  Monitoring,
+  Pedals,
+  Pins,
+  Protocol,
+  Settings,
+} from "@pages";
 import type { ComponentType } from "react";
 
 export interface RouteConfig {
@@ -22,6 +34,13 @@ export const ROUTES: Record<string, RouteConfig> = {
     title: "Base",
     icon: "icon fi fi-sr-computer",
     component: BasePage,
+    fullWidth: true,
+  },
+  pedals: {
+    path: "/pedals",
+    title: "Pedals",
+    icon: "icon fi fi-sr-brake-warning",
+    component: Pedals,
     fullWidth: true,
   },
   effects: {
@@ -65,12 +84,6 @@ export const ROUTES: Record<string, RouteConfig> = {
     icon: "icon fi fi-sr-arrows-alt-h",
     component: Axes,
     fullWidth: true,
-  },
-  license: {
-    path: "/license",
-    title: "License",
-    icon: "icon fi fi-sr-key",
-    component: License,
   },
   autoProfiles: {
     path: "/autoprofiles",

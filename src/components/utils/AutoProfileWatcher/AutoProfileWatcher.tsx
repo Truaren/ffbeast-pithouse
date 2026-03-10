@@ -17,7 +17,13 @@ export const AutoProfileWatcher = () => {
 
   useEffect(() => {
     // Only run in Electron environment
-    const win = window as any;
+    const win = window as Window & {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<string[]>;
+        };
+      };
+    };
     if (!win.require) return;
     const { ipcRenderer } = win.require("electron");
 

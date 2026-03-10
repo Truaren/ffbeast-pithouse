@@ -1,21 +1,21 @@
-import { useEffect } from "react";
-import { HashRouter } from "react-router-dom";
-import { Toaster } from "sonner";
+import "./styles/global.scss";
 
 import { MainLayout, Sidebar, Topbar } from "@components/layout";
 import { AutoProfileWatcher, ScrollToTop } from "@components/utils";
 import { ConnectionPage, UnsupportedBrowser } from "@pages";
 import { WheelApi } from "@shubham0x13/ffbeast-wheel-webhid-api";
+import { useEffect } from "react";
+import { HashRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 
 import { UpdateModal } from "@/components/ui/UpdateModal/UpdateModal";
 import { useAppPreferencesStore, useProfileStore } from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
 
-import "./styles/global.scss";
-
 const App = () => {
   const { profiles, activeProfile, setActiveProfile } = useProfileStore();
-  const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } = useUpdateStore();
+  const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } =
+    useUpdateStore();
   const { preferences } = useAppPreferencesStore();
 
   // Check for updates on startup
@@ -26,7 +26,12 @@ const App = () => {
       }
       setHasCheckedOnStartup(true);
     }
-  }, [hasCheckedOnStartup, checkForUpdate, setHasCheckedOnStartup, preferences.autoCheckUpdates]);
+  }, [
+    hasCheckedOnStartup,
+    checkForUpdate,
+    setHasCheckedOnStartup,
+    preferences.autoCheckUpdates,
+  ]);
 
   // Auto-load default profile on startup
   useEffect(() => {

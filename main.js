@@ -1,8 +1,18 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, dialog, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  Menu,
+  nativeImage,
+  dialog,
+  shell,
+} from "electron";
 import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
+import { createRequire } from "module";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -204,7 +214,7 @@ ipcMain.handle("get-running-processes", async () => {
       for (const line of lines) {
         const parts = line.split('","');
         if (parts.length > 0) {
-          let exeName = parts[0].replace('"', '').trim();
+          let exeName = parts[0].replace('"', "").trim();
           if (exeName) {
             processes.add(exeName.toLowerCase());
           }
@@ -277,6 +287,503 @@ ipcMain.handle("load-preferences", () => {
   return null;
 });
 
+// ─── PEDALS HID SYSTEM ────────────────────────────────────────────────────────
+// Uses node-hid to talk to FEEL-VR Pedals, loading protocol from pedals/index.js
+
+const _require = createRequire(import.meta.url);
+
+let HID = null;
+try {
+  HID = _require("node-hid");
+} catch (e) {
+  console.warn("[Pedals] node-hid not available:", e.message);
+}
+
+// ─── Pedal Hardware Logic ──────────────────────────────────────────────────────
+
+let hidConnected = false;
+let configDevice = null;
+let joystickDevice = null;
+let liveDataInterval = null;
+let reconnectInterval = null;
+let currentPedalConfig = null;
+
+let isDebugRecording = false;
+let debugRecordingData = [];
+let debugRecordingStartTime = 0;
+
+// Dynamic Pedal Plugin System
+let pedalPlugin = null; // Currently loaded pedals module
+const DEFAULT_PLUGIN_ID = "FEEL-VR Pedals"; // The folder name to load by default
+
+// We'll require the default plugin on startup if it exists
+// loadPluginById is hoisted so we can call it here, but let's push the call into a function or do it inline safely:
+try {
+  // Try loading default plugin right away using the hoisted function
+  pedalPlugin = loadPluginById(DEFAULT_PLUGIN_ID);
+  if (pedalPlugin) {
+    console.log(
+      "[Pedals] Default Plugin loaded:",
+      pedalPlugin.DEVICE_INFO?.name,
+    );
+  }
+} catch (e) {
+  console.log("[Pedals] Failed to load default plugin:", e.message);
+}
+
+const FEEL_VR_VID = 0x0483; // fallback
+const FEEL_VR_PID = 0xa2ea; // fallback
+const REPORT_ID_CONFIG = 0x03;
+const CONFIG_REPORT_SIZE = 17;
+
+function sendToRenderer(channel, data) {
+  const wins = BrowserWindow.getAllWindows();
+  const win = wins.length > 0 ? wins[0] : null;
+  if (win && !win.isDestroyed()) {
+    win.webContents.send(channel, data);
+  }
+}
+
+function findHidDevices() {
+  if (!HID) return { config: null, joystick: null };
+  const targetVID = pedalPlugin?.DEVICE_INFO?.vendorId ?? 0x0483; // fallback 0x0483
+  const targetPID = pedalPlugin?.DEVICE_INFO?.productId ?? 0xa2ea; // fallback 0xA2EA
+
+  try {
+    const devices = HID.devices(targetVID, targetPID);
+    if (devices.length === 0) {
+      // Try scanning all devices to find by VID/PID regardless
+      const all = HID.devices();
+      const matched = all.filter(
+        (d) => d.vendorId === targetVID && d.productId === targetPID,
+      );
+      if (matched.length > 0) {
+        console.log(
+          "[Pedals] Found via full scan:",
+          matched.map((d) => `usagePage=${d.usagePage} path=${d.path}`),
+        );
+        devices.push(...matched);
+      }
+    }
+    // Joystick: usagePage 0x01 preferred, else any
+    let joystick = devices.find((d) => d.usagePage === 0x01) || null;
+    // Config: usagePage 0xFF00 preferred, else any non-joystick
+    let config =
+      devices.find((d) => d.usagePage === 0xff00) ||
+      devices.find((d) => d.usagePage !== 0x01) ||
+      null;
+    // Fallback: if only one interface found, use it for both
+    if (!joystick && devices.length > 0) joystick = devices[0];
+    if (!config && devices.length > 1) config = devices[1];
+    if (devices.length > 0) {
+      console.log(
+        `[Pedals] Interfaces found: ${devices.length}, joy=${joystick?.usagePage}, cfg=${config?.usagePage}`,
+      );
+    }
+    return { config, joystick };
+  } catch (e) {
+    return { config: null, joystick: null };
+  }
+}
+
+function openConfigDevice(info) {
+  try {
+    const dev = new HID.HID(info.path);
+    dev.on("error", (e) => {
+      console.warn("[Pedals] Config device error:", e.message);
+      configDevice = null;
+    });
+    return dev;
+  } catch (e) {
+    console.warn("[Pedals] Cannot open config interface:", e.message);
+    return null;
+  }
+}
+
+function openJoystickDevice(info) {
+  // Try exclusive first, then shared (Windows allows shared for usagePage 0x01)
+  try {
+    const dev = new HID.HID(info.path);
+    dev.on("error", (e) => {
+      console.warn("[Pedals] Joystick device error:", e.message);
+      joystickDevice = null;
+    });
+    console.log("[Pedals] Joystick opened (exclusive)");
+    return dev;
+  } catch (e) {
+    console.warn("[Pedals] Exclusive open failed:", e.message);
+    // Try with nonExclusive flag (node-hid >= 2.1 supports this on some platforms)
+    try {
+      const dev = new HID.HID({ path: info.path, exclusive: false });
+      dev.on("error", (er) => {
+        joystickDevice = null;
+      });
+      console.log("[Pedals] Joystick opened (non-exclusive)");
+      return dev;
+    } catch (e2) {
+      console.error(
+        "[Pedals] Cannot open joystick interface (device busy?):",
+        e2.message,
+      );
+      console.error("[Pedals] → Close the FEEL-VR Control app and try again");
+      sendToRenderer("pedals:busyError", {
+        message: "Device busy — close FEEL-VR Control app",
+      });
+      return null;
+    }
+  }
+}
+
+function tryConnectPedals() {
+  if (hidConnected || !HID) return;
+  const { config, joystick } = findHidDevices();
+  if (!joystick) return;
+
+  joystickDevice = openJoystickDevice(joystick);
+  if (config) configDevice = openConfigDevice(config);
+
+  if (joystickDevice) {
+    hidConnected = true;
+    // Use plugin DEVICE_INFO.name if available, otherwise fall back to HID product name
+    const name =
+      pedalPlugin?.DEVICE_INFO?.name ??
+      config?.product ??
+      joystick?.product ??
+      "FEEL-VR Pedals";
+    sendToRenderer("pedals:connected", { name });
+    console.log("[Pedals] Connected:", name);
+    startLivePolling();
+  }
+}
+
+function disconnectPedals() {
+  hidConnected = false;
+  stopLivePolling();
+  if (joystickDevice) {
+    try {
+      joystickDevice.close();
+    } catch (_) {}
+    joystickDevice = null;
+  }
+  if (configDevice) {
+    try {
+      configDevice.close();
+    } catch (_) {}
+    configDevice = null;
+  }
+  sendToRenderer("pedals:disconnected", {});
+  console.log("[Pedals] Disconnected");
+}
+
+function startLivePolling() {
+  if (liveDataInterval) return;
+  liveDataInterval = setInterval(() => {
+    if (!joystickDevice) {
+      disconnectPedals();
+      return;
+    }
+    try {
+      const data = joystickDevice.readTimeout(0);
+      if (!data || data.length === 0) return;
+      const buf = Buffer.from(data);
+
+      let throttleRaw = 0,
+        brakeRaw = 0,
+        clutchRaw = 0;
+
+      if (typeof pedalPlugin?.parseRaw === "function") {
+        // Plugin handles raw HID parsing directly
+        const parsed = pedalPlugin.parseRaw(buf);
+        throttleRaw = parsed.axis1 ?? 0;
+        brakeRaw = parsed.axis2 ?? 0;
+        clutchRaw = parsed.axis3 ?? 0;
+      } else {
+        // Fallback: Default FEEL-VR Pedals parsing
+        const safeU16 = (b, o) => (b.length >= o + 2 ? b.readUInt16LE(o) : 0);
+        const safeU24 = (b, o) => (b.length >= o + 3 ? b.readUIntLE(o, 3) : 0);
+        throttleRaw = safeU16(buf, 1);
+        brakeRaw = safeU24(buf, 3);
+        clutchRaw = safeU16(buf, 7);
+      }
+
+      const rawData = { axis1: throttleRaw, axis2: brakeRaw, axis3: clutchRaw };
+      let telemetry = { throttle: 0, brake: 0, clutch: 0 };
+      if (typeof pedalPlugin?.parseTelemetry === "function") {
+        const parsedTel = pedalPlugin.parseTelemetry(
+          { raw: rawData },
+          currentPedalConfig,
+        );
+        telemetry.throttle = parsedTel.throttle ?? 0;
+        telemetry.brake = parsedTel.brake ?? 0;
+        telemetry.clutch = parsedTel.clutch ?? 0;
+      } else {
+        // Fallback logic
+        const calcRatio = (val, min, max, invert) => {
+          let ratio = 0;
+          if (max > min) {
+            const clamped = Math.max(min, Math.min(max, val));
+            ratio = (clamped - min) / (max - min);
+          }
+          return invert ? 1 - ratio : ratio;
+        };
+        telemetry.throttle = calcRatio(throttleRaw, 0, 16384, true);
+        telemetry.brake = calcRatio(brakeRaw, 0, 16777216, false);
+        telemetry.clutch = calcRatio(clutchRaw, 0, 16384, false);
+      }
+
+      if (isDebugRecording) {
+        debugRecordingData.push({
+          time: Date.now() - debugRecordingStartTime,
+          raw: rawData,
+          telemetry: telemetry,
+        });
+      }
+
+      sendToRenderer("pedals:liveData", {
+        raw: rawData,
+        throttle: throttleRaw,
+        brake: brakeRaw,
+        clutch: clutchRaw,
+        telemetry: telemetry,
+      });
+    } catch (e) {
+      joystickDevice = null;
+      disconnectPedals();
+    }
+  }, 16); // ~60fps
+}
+
+function stopLivePolling() {
+  if (liveDataInterval) {
+    clearInterval(liveDataInterval);
+    liveDataInterval = null;
+  }
+}
+
+function startReconnectLoop() {
+  reconnectInterval = setInterval(() => {
+    if (!hidConnected) tryConnectPedals();
+  }, 1500);
+}
+
+// ─── Pedals IPC handlers ─────────────────────────────────────────────────────
+
+ipcMain.handle("pedals:getStatus", () => ({
+  connected: hidConnected,
+  plugin: pedalPlugin
+    ? {
+        name: pedalPlugin.DEVICE_INFO?.name,
+        vendorId: pedalPlugin.DEVICE_INFO?.vendorId,
+        productId: pedalPlugin.DEVICE_INFO?.productId,
+      }
+    : null,
+}));
+
+ipcMain.handle("pedals:getConfig", () => {
+  if (!configDevice || !pedalPlugin)
+    return { success: false, error: "Config interface not open" };
+  try {
+    if (typeof pedalPlugin.readConfig === "function") {
+      const config = pedalPlugin.readConfig(configDevice);
+      currentPedalConfig = config;
+      return { success: true, config };
+    }
+    return { success: false, error: "Not supported by plugin" };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle("pedals:setConfig", (_event, cfg) => {
+  currentPedalConfig = cfg;
+  if (!configDevice || !pedalPlugin)
+    return { success: false, error: "Not available" };
+  try {
+    if (typeof pedalPlugin.writeConfig === "function") {
+      pedalPlugin.writeConfig(configDevice, cfg);
+      return { success: true };
+    }
+    return { success: false, error: "Not supported by plugin" };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle("pedals:saveConfig", () => {
+  if (!configDevice || !pedalPlugin) return { success: false };
+  try {
+    if (typeof pedalPlugin.saveConfig === "function") {
+      pedalPlugin.saveConfig(configDevice);
+      return { success: true };
+    }
+    return { success: false, error: "Not supported by plugin" };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle("pedals:resetConfig", () => {
+  if (!pedalPlugin) return { success: false };
+  const defaults = pedalPlugin.DEFAULT_RAW_LIMITS;
+  return { success: true, config: defaults };
+});
+
+ipcMain.handle("pedals:getDefaults", () => {
+  return pedalPlugin ? pedalPlugin.DEFAULT_RAW_LIMITS : null;
+});
+
+// Debug Recording Handlers
+ipcMain.handle("pedals:startDebugRecord", () => {
+  if (!hidConnected) return { success: false, error: "Pedals not connected" };
+  debugRecordingData = [];
+  debugRecordingStartTime = Date.now();
+  isDebugRecording = true;
+  return { success: true };
+});
+
+ipcMain.handle("pedals:stopDebugRecord", async () => {
+  if (!isDebugRecording) return { success: false, error: "Not recording" };
+  isDebugRecording = false;
+
+  if (debugRecordingData.length === 0) {
+    return { success: false, error: "No data recorded" };
+  }
+
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Save Pedal Debug Data",
+    defaultPath: `pedal_debug_${Date.now()}.txt`,
+    filters: [{ name: "Text Files", extensions: ["txt"] }],
+  });
+
+  if (result.canceled || !result.filePath) {
+    debugRecordingData = []; // clear memory
+    return { success: false, error: "Cancelled by user" };
+  }
+
+  try {
+    let output =
+      "TimeMs\tThrottleRaw\tBrakeRaw\tClutchRaw\tThrottleRatio\tBrakeRatio\tClutchRatio\n";
+    for (const d of debugRecordingData) {
+      output += `${d.time}\t${d.raw.axis1}\t${d.raw.axis2}\t${d.raw.axis3}\t${d.telemetry.throttle.toFixed(4)}\t${d.telemetry.brake.toFixed(4)}\t${d.telemetry.clutch.toFixed(4)}\n`;
+    }
+    fs.writeFileSync(result.filePath, output, "utf-8");
+    debugRecordingData = []; // clear memory
+    return { success: true, filePath: result.filePath };
+  } catch (err) {
+    debugRecordingData = [];
+    return { success: false, error: err.message };
+  }
+});
+
+// Helper to locate the pedals directory depending on the environment
+function getPedalsDir() {
+  if (app.isPackaged) {
+    // When installed/packaged, extraFiles puts 'pedals' next to the executable
+    return path.join(path.dirname(app.getPath("exe")), "pedals");
+  }
+  return path.join(__dirname, "pedals");
+}
+
+// Load a plugin module by id ("pedals" = root, or subfolder name)
+function loadPluginById(id) {
+  try {
+    const pedalsDir = getPedalsDir();
+
+    // Sub-folder plugin: look for index.cjs or index.js
+    const subCjs = path.join(pedalsDir, id, "index.cjs");
+    const subIdx = path.join(pedalsDir, id, "index.js");
+    let pluginPath = fs.existsSync(subCjs) ? subCjs : subIdx;
+
+    if (!fs.existsSync(pluginPath)) {
+      throw new Error(`Plugin entry not found in ${id}`);
+    }
+
+    // Bust require cache so fresh module is loaded
+    delete _require.cache?.[_require.resolve(pluginPath)];
+    return _require(pluginPath);
+  } catch (e) {
+    console.error(`[Pedals] loadPluginById(${id}) failed:`, e.message);
+    return null;
+  }
+}
+
+ipcMain.handle("pedals:listPlugins", () => {
+  try {
+    const pedalsDir = getPedalsDir();
+    const plugins = [];
+
+    // Subfolders with index.js or index.cjs
+    if (!fs.existsSync(pedalsDir)) return plugins;
+
+    const entries = fs.readdirSync(pedalsDir, { withFileTypes: true });
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      const idxPathJs = path.join(pedalsDir, e.name, "index.js");
+      const idxPathCjs = path.join(pedalsDir, e.name, "index.cjs");
+      if (!fs.existsSync(idxPathJs) && !fs.existsSync(idxPathCjs)) continue;
+
+      try {
+        const p = loadPluginById(e.name);
+        plugins.push({
+          id: e.name,
+          name: p?.DEVICE_INFO?.name ?? e.name,
+          vendorId: p?.DEVICE_INFO?.vendorId,
+          productId: p?.DEVICE_INFO?.productId,
+          isDefault: e.name === DEFAULT_PLUGIN_ID,
+        });
+      } catch (_) {
+        plugins.push({
+          id: e.name,
+          name: e.name,
+          isDefault: e.name === DEFAULT_PLUGIN_ID,
+        });
+      }
+    }
+    return plugins;
+  } catch (e) {
+    return [];
+  }
+});
+
+ipcMain.handle("pedals:loadPlugin", (_event, pluginId) => {
+  try {
+    const newPlugin = loadPluginById(pluginId);
+    if (!newPlugin)
+      return { success: false, error: "Plugin not found: " + pluginId };
+
+    // Swap active plugin
+    pedalPlugin = newPlugin;
+    const info = pedalPlugin.DEVICE_INFO;
+    const name = info?.name ?? "FEEL-VR Pedals";
+    console.log("[Pedals] Plugin switched to:", name);
+
+    // Reconnect if currently connected (device might differ)
+    if (hidConnected) {
+      disconnectPedals();
+      setTimeout(() => {
+        tryConnectPedals();
+        if (hidConnected) {
+          sendToRenderer("pedals:connected", { name });
+        }
+      }, 500);
+    } else {
+      // Not connected — try to connect with the new plugin
+      // Update VID/PID globally so reconnect loop uses the right ones
+      tryConnectPedals();
+    }
+
+    return {
+      success: true,
+      name,
+      vendorId: info?.vendorId,
+      productId: info?.productId,
+      connected: hidConnected,
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
@@ -294,6 +801,18 @@ if (!gotTheLock) {
     loadSettings();
     createWindow();
     createTray();
+    startReconnectLoop(); // Keep retrying every 1.5s
+
+    // Once the renderer has fully loaded, attempt connect and re-notify if already connected
+    // (so the renderer can load config immediately on startup)
+    mainWindow.webContents.once("did-finish-load", () => {
+      tryConnectPedals();
+      // If already connected from a previous fast attempt, re-send connected event
+      if (hidConnected) {
+        const name = pedalPlugin?.DEVICE_INFO?.name ?? "FEEL-VR Pedals";
+        sendToRenderer("pedals:connected", { name });
+      }
+    });
 
     app.on("activate", function () {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
