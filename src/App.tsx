@@ -12,6 +12,8 @@ import { UpdateModal } from "@/components/ui/UpdateModal/UpdateModal";
 import { useAppPreferencesStore, useProfileStore } from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
 
+import { TitleBarProvider } from "./components/layout/TitleBarContext";
+
 const App = () => {
   const { profiles, activeProfile, setActiveProfile } = useProfileStore();
   const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } =
@@ -74,14 +76,16 @@ const App = () => {
       <ConnectionPage />
 
       <HashRouter>
-        <ScrollToTop />
-        <div className="canvas">
-          <Topbar />
-          <div className="canvas_bottom">
-            <Sidebar />
-            <MainLayout />
+        <TitleBarProvider>
+          <ScrollToTop />
+          <div className="canvas">
+            <Topbar />
+            <div className="canvas_bottom">
+              <Sidebar />
+              <MainLayout />
+            </div>
           </div>
-        </div>
+        </TitleBarProvider>
       </HashRouter>
     </>
   );

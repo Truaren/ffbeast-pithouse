@@ -8,7 +8,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 // ─── IPC helper ───────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IpcRenderer {
   invoke: (ch: string, ...a: any[]) => Promise<any>;
   on: (ch: string, fn: (...a: any[]) => void) => void;

@@ -1,3 +1,5 @@
+import "./style.scss";
+
 import { SettingField } from "@shubham0x13/ffbeast-wheel-webhid-api";
 import { useShallow } from "zustand/react/shallow";
 
@@ -6,12 +8,12 @@ import { useGamepads } from "@/hooks/use-gamepads";
 import { useSettingUI } from "@/hooks/use-setting-ui";
 import { useDeviceSettingsStore } from "@/stores";
 
-import "./style.scss";
-
 const AXIS_LABELS = ["Rx — Rotation X", "Ry — Rotation Y", "Rz — Rotation Z"];
 
 export const Axes = () => {
-  const { adc } = useDeviceSettingsStore(useShallow((s) => ({ adc: s.settings.adc })));
+  const { adc } = useDeviceSettingsStore(
+    useShallow((s) => ({ adc: s.settings.adc })),
+  );
   const setSetting = useSettingUI();
   const gamepads = useGamepads();
   const allPads = Object.values(gamepads);
@@ -29,7 +31,10 @@ export const Axes = () => {
     <div className="axes_page">
       <div className="axes_header_note">
         <i className="icon fi fi-sr-info" />
-        <span>Configure analog axis calibration and button trigger thresholds. Enable Analog pins in the <strong>Pins</strong> tab first.</span>
+        <span>
+          Configure analog axis calibration and button trigger thresholds.
+          Enable Analog pins in the <strong>Pins</strong> tab first.
+        </span>
       </div>
 
       <div className="axes_list">
@@ -52,12 +57,23 @@ export const Axes = () => {
 
               {/* Live bar */}
               <div className="axis_bar_track">
-                <div className="axis_bar_fill" style={{ width: `${liveVal}%` }} />
+                <div
+                  className="axis_bar_fill"
+                  style={{ width: `${liveVal}%` }}
+                />
                 {btnLow > 0 && (
-                  <div className="axis_threshold low" style={{ left: `${btnLow}%` }} title={`Button Low: ${btnLow}%`} />
+                  <div
+                    className="axis_threshold low"
+                    style={{ left: `${btnLow}%` }}
+                    title={`Button Low: ${btnLow}%`}
+                  />
                 )}
                 {btnHigh < 100 && (
-                  <div className="axis_threshold high" style={{ left: `${btnHigh}%` }} title={`Button High: ${btnHigh}%`} />
+                  <div
+                    className="axis_threshold high"
+                    style={{ left: `${btnHigh}%` }}
+                    title={`Button High: ${btnHigh}%`}
+                  />
                 )}
               </div>
 
@@ -66,28 +82,55 @@ export const Axes = () => {
                   <Slider
                     label="Min Deadzone (%)"
                     value={min}
-                    onValueCommit={(v) => void setSetting(SettingField.AdcMinDeadZone, v, index)}
-                    infoPanelProps={{ description: "Input values below this percentage are treated as 0 (resting position).", impact: "Helps eliminate noise at the low end of the axis travel." }}
+                    onValueCommit={(v) =>
+                      void setSetting(SettingField.AdcMinDeadZone, v, index)
+                    }
+                    infoPanelProps={{
+                      description:
+                        "Input values below this percentage are treated as 0 (resting position).",
+                      impact:
+                        "Helps eliminate noise at the low end of the axis travel.",
+                    }}
                   />
                   <Slider
                     label="Max Deadzone (%)"
                     value={max}
-                    onValueCommit={(v) => void setSetting(SettingField.AdcMaxDeadZone, v, index)}
-                    infoPanelProps={{ description: "Input values above this percentage are treated as 100% (full travel).", impact: "Helps reach true 100% output before physical endstop." }}
+                    onValueCommit={(v) =>
+                      void setSetting(SettingField.AdcMaxDeadZone, v, index)
+                    }
+                    infoPanelProps={{
+                      description:
+                        "Input values above this percentage are treated as 100% (full travel).",
+                      impact:
+                        "Helps reach true 100% output before physical endstop.",
+                    }}
                   />
                 </div>
                 <div className="axis_row_two">
                   <Slider
                     label="Smoothing (%)"
                     value={smoothing}
-                    onValueCommit={(v) => void setSetting(SettingField.AdcSmoothing, v, index)}
-                    infoPanelProps={{ description: "Low-pass filter strength applied to the analog reading.", impact: "Reduces jitter at the cost of slight response lag." }}
+                    onValueCommit={(v) =>
+                      void setSetting(SettingField.AdcSmoothing, v, index)
+                    }
+                    infoPanelProps={{
+                      description:
+                        "Low-pass filter strength applied to the analog reading.",
+                      impact:
+                        "Reduces jitter at the cost of slight response lag.",
+                    }}
                   />
                   <div className="axis_invert_wrap">
                     <ToggleSwitch
                       label="Invert Axis"
                       checked={invert}
-                      onToggle={(checked) => void setSetting(SettingField.AdcInvert, checked ? 1 : 0, index)}
+                      onToggle={(checked) =>
+                        void setSetting(
+                          SettingField.AdcInvert,
+                          checked ? 1 : 0,
+                          index,
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -95,14 +138,27 @@ export const Axes = () => {
                   <Slider
                     label="Button Trigger Low (%)"
                     value={btnLow}
-                    onValueCommit={(v) => void setSetting(SettingField.AdcToButtonLow, v, index)}
-                    infoPanelProps={{ description: "Axis position (%) at which a 'low threshold' button press is triggered.", impact: "Set to 0 to disable. Useful for pedal bite-point buttons." }}
+                    onValueCommit={(v) =>
+                      void setSetting(SettingField.AdcToButtonLow, v, index)
+                    }
+                    infoPanelProps={{
+                      description:
+                        "Axis position (%) at which a 'low threshold' button press is triggered.",
+                      impact:
+                        "Set to 0 to disable. Useful for pedal bite-point buttons.",
+                    }}
                   />
                   <Slider
                     label="Button Trigger High (%)"
                     value={btnHigh}
-                    onValueCommit={(v) => void setSetting(SettingField.AdcToButtonHigh, v, index)}
-                    infoPanelProps={{ description: "Axis position (%) at which a 'high threshold' button press is triggered.", impact: "Set to 100 to disable." }}
+                    onValueCommit={(v) =>
+                      void setSetting(SettingField.AdcToButtonHigh, v, index)
+                    }
+                    infoPanelProps={{
+                      description:
+                        "Axis position (%) at which a 'high threshold' button press is triggered.",
+                      impact: "Set to 100 to disable.",
+                    }}
                   />
                 </div>
               </div>

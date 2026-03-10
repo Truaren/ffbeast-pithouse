@@ -1,0 +1,260 @@
+.game-compatibility-page {
+  padding: 0.5rem;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+
+  .container {
+    max-width: 900px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .game-card {
+    display: flex;
+    background-color: var(--bg-secondary);
+    border-radius: 6px;
+    overflow: hidden;
+    transition:
+      background-color 0.2s,
+      transform 0.2s,
+      filter 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    min-height: 140px;
+    flex-shrink: 0;
+
+    &:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+  }
+
+  .game-image {
+    width: 300px;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 80px;
+      background: linear-gradient(to right, transparent, var(--bg-secondary));
+      pointer-events: none;
+      z-index: 1;
+    }
+  }
+
+  .game-content {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .game-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+    letter-spacing: 0.5px;
+  }
+
+  .game-stats {
+    font-size: 13px;
+    color: #cfaa4c;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .right-panel {
+    width: 260px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    border-left: 1px solid var(--border);
+  }
+
+  .card-feedback-btn-small {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--bg-accent);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+  }
+
+  .status-badge {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 3px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .status-native {
+    background-color: #1e991e;
+    color: white;
+  }
+  .status-patches {
+    background-color: #bfa12a;
+    color: white;
+  }
+  .status-problems {
+    background-color: #bf732a;
+    color: white;
+  }
+  .status-broken {
+    background-color: #ba2d2d;
+    color: white;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .feature-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .state-ok {
+    background-color: #1e991e;
+    box-shadow: 0 0 4px #1e991e;
+  }
+  .state-warn {
+    background-color: #bfa12a;
+    box-shadow: 0 0 4px #bfa12a;
+  }
+  .state-err {
+    background-color: #ba2d2d;
+    box-shadow: 0 0 4px #ba2d2d;
+  }
+  .state-none {
+    background-color: #444;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--bg-primary);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  border: 1px solid var(--border);
+
+  h2 {
+    margin-top: 0;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+}

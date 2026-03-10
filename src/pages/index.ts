@@ -5,6 +5,7 @@ export * from "./Buttons";
 export * from "./ConnectionPage";
 export * from "./Dashboard";
 export * from "./EffectSettings";
+export * from "./GameCompatibility";
 export * from "./License";
 export * from "./Monitoring";
 export * from "./Pedals";

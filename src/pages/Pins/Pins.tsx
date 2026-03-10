@@ -1,10 +1,10 @@
+import "./style.scss";
+
 import { SettingField } from "@shubham0x13/ffbeast-wheel-webhid-api";
 import { useShallow } from "zustand/react/shallow";
 
 import { useSettingUI } from "@/hooks/use-setting-ui";
 import { useDeviceSettingsStore } from "@/stores";
-
-import "./style.scss";
 
 const PIN_MODES = [
   { value: 0, label: "None" },
@@ -35,12 +35,13 @@ const PIN_DESCRIPTIONS: Record<number, string> = {
 };
 
 export const Pins = () => {
-  const { gpio } = useDeviceSettingsStore(useShallow((s) => ({ gpio: s.settings.gpio })));
+  const { gpio } = useDeviceSettingsStore(
+    useShallow((s) => ({ gpio: s.settings.gpio })),
+  );
   const setSetting = useSettingUI();
 
-  const pinModes = gpio.pinMode?.length >= 10
-    ? gpio.pinMode
-    : new Array<number>(10).fill(0);
+  const pinModes =
+    gpio.pinMode?.length >= 10 ? gpio.pinMode : new Array<number>(10).fill(0);
 
   const handleModeChange = async (pinIndex: number, value: number) => {
     await setSetting(SettingField.PinMode, value, pinIndex);
@@ -50,7 +51,11 @@ export const Pins = () => {
     <div className="pins_page">
       <div className="pins_header_note">
         <i className="icon fi fi-sr-info" />
-        <span>Assign function to each GPIO pin. Configure the SPI protocol in the <strong>Protocol</strong> tab, and analog axes in the <strong>Axes</strong> tab.</span>
+        <span>
+          Assign function to each GPIO pin. Configure the SPI protocol in the{" "}
+          <strong>Protocol</strong> tab, and analog axes in the{" "}
+          <strong>Axes</strong> tab.
+        </span>
       </div>
 
       <div className="pins_grid">
@@ -63,10 +68,14 @@ export const Pins = () => {
             <select
               className="pin_select"
               value={mode}
-              onChange={(e) => void handleModeChange(index, Number(e.target.value))}
+              onChange={(e) =>
+                void handleModeChange(index, Number(e.target.value))
+              }
             >
               {PIN_MODES.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
               ))}
             </select>
             <p className="pin_desc">{PIN_DESCRIPTIONS[mode] ?? ""}</p>

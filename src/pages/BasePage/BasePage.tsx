@@ -1,10 +1,10 @@
+import "./style.scss";
+
 import { SettingField } from "@shubham0x13/ffbeast-wheel-webhid-api";
 
 import { Slider, ToggleSwitch } from "@/components/ui";
 import { useSettingUI } from "@/hooks/use-setting-ui";
 import { useDeviceSettingsStore } from "@/stores";
-
-import "./style.scss";
 
 export const BasePage = () => {
   const hardware = useDeviceSettingsStore((state) => state.settings.hardware);
@@ -12,7 +12,6 @@ export const BasePage = () => {
 
   return (
     <div className="base_page">
-
       {/* CONTROLLER PANEL */}
       <div className="base_card">
         <div className="card_header">
@@ -39,8 +38,10 @@ export const BasePage = () => {
             value={hardware.powerLimit}
             onValueCommit={(v) => setSetting(SettingField.PowerLimit, v)}
             infoPanelProps={{
-              description: "A safety cap on the total power sent to the motor. Protects your PSU and prevents overheating.",
-              impact: "Start low! If your PSU shuts down during high forces, lower this value.",
+              description:
+                "A safety cap on the total power sent to the motor. Protects your PSU and prevents overheating.",
+              impact:
+                "Start low! If your PSU shuts down during high forces, lower this value.",
             }}
           />
           <Slider
@@ -49,8 +50,10 @@ export const BasePage = () => {
             value={hardware.positionSmoothing}
             onValueCommit={(v) => setSetting(SettingField.PositionSmoothing, v)}
             infoPanelProps={{
-              description: "Filters out jitter or noise from your encoder position sensor.",
-              impact: "Keep at 0% unless your sensor is noisy. Adding too much introduces input lag.",
+              description:
+                "Filters out jitter or noise from your encoder position sensor.",
+              impact:
+                "Keep at 0% unless your sensor is noisy. Adding too much introduces input lag.",
             }}
           />
           <Slider
@@ -61,8 +64,10 @@ export const BasePage = () => {
             max={32}
             onValueCommit={(v) => setSetting(SettingField.SpeedBufferSize, v)}
             infoPanelProps={{
-              description: "The averaging window for calculating rotation speed. Crucial for smooth Dampening effects.",
-              impact: "If Dampening feels 'grainy' or noisy, increase this value.",
+              description:
+                "The averaging window for calculating rotation speed. Crucial for smooth Dampening effects.",
+              impact:
+                "If Dampening feels 'grainy' or noisy, increase this value.",
             }}
           />
         </div>
@@ -95,8 +100,10 @@ export const BasePage = () => {
             max={65535}
             onValueCommit={(v) => setSetting(SettingField.EncoderCPR, v)}
             infoPanelProps={{
-              description: "The resolution of your position sensor (Counts Per Revolution).",
-              impact: "Must match your hardware exactly. If wrong, your rotation angles will be incorrect.",
+              description:
+                "The resolution of your position sensor (Counts Per Revolution).",
+              impact:
+                "Must match your hardware exactly. If wrong, your rotation angles will be incorrect.",
             }}
           />
           <Slider
@@ -106,8 +113,10 @@ export const BasePage = () => {
             max={99}
             onValueCommit={(v) => setSetting(SettingField.PolePairs, v)}
             infoPanelProps={{
-              description: "The internal magnet configuration of your motor (Total Magnets / 2).",
-              impact: "If incorrect, the motor will stutter, make noise, or fail to spin smoothly.",
+              description:
+                "The internal magnet configuration of your motor (Total Magnets / 2).",
+              impact:
+                "If incorrect, the motor will stutter, make noise, or fail to spin smoothly.",
             }}
           />
           <Slider
@@ -117,8 +126,10 @@ export const BasePage = () => {
             max={100}
             onValueCommit={(v) => setSetting(SettingField.PGain, v)}
             infoPanelProps={{
-              description: "Proportional Gain for the motor's electrical current controller (PID).",
-              impact: "Advanced setting. Only adjust if you are tuning the electrical response.",
+              description:
+                "Proportional Gain for the motor's electrical current controller (PID).",
+              impact:
+                "Advanced setting. Only adjust if you are tuning the electrical response.",
             }}
           />
           <Slider
@@ -127,8 +138,10 @@ export const BasePage = () => {
             max={500}
             onValueCommit={(v) => setSetting(SettingField.IGain, v)}
             infoPanelProps={{
-              description: "Integral Gain for the motor's electrical current controller (PID).",
-              impact: "Controls how the motor corrects current errors over time.",
+              description:
+                "Integral Gain for the motor's electrical current controller (PID).",
+              impact:
+                "Controls how the motor corrects current errors over time.",
             }}
           />
         </div>
@@ -144,10 +157,14 @@ export const BasePage = () => {
           <Slider
             label="Calibration Magnitude (%)"
             value={hardware.calibrationMagnitude}
-            onValueCommit={(v) => setSetting(SettingField.CalibrationMagnitude, v)}
+            onValueCommit={(v) =>
+              setSetting(SettingField.CalibrationMagnitude, v)
+            }
             infoPanelProps={{
-              description: "The amount of force the wheel uses to find its center during startup.",
-              impact: "If too low, the wheel might get stuck. If too high, startup can be violent.",
+              description:
+                "The amount of force the wheel uses to find its center during startup.",
+              impact:
+                "If too low, the wheel might get stuck. If too high, startup can be violent.",
             }}
           />
           <Slider
@@ -155,8 +172,10 @@ export const BasePage = () => {
             value={hardware.calibrationSpeed}
             onValueCommit={(v) => setSetting(SettingField.CalibrationSpeed, v)}
             infoPanelProps={{
-              description: "How fast the wheel rotates during the startup calibration sequence.",
-              impact: "Lower this if the automatic calibration spin feels too fast.",
+              description:
+                "How fast the wheel rotates during the startup calibration sequence.",
+              impact:
+                "Lower this if the automatic calibration spin feels too fast.",
             }}
           />
           <Slider
@@ -164,13 +183,14 @@ export const BasePage = () => {
             value={hardware.brakingLimit}
             onValueCommit={(v) => setSetting(SettingField.BrakingLimit, v)}
             infoPanelProps={{
-              description: "Protects your PSU from voltage spikes when the motor generates electricity.",
-              impact: "Increase this if your PSU shuts down during fast wheel movements.",
+              description:
+                "Protects your PSU from voltage spikes when the motor generates electricity.",
+              impact:
+                "Increase this if your PSU shuts down during fast wheel movements.",
             }}
           />
         </div>
       </div>
-
     </div>
   );
 };

@@ -5,6 +5,7 @@ import {
   Buttons,
   Dashboard,
   EffectSettings,
+  GameCompatibility,
   Monitoring,
   Pedals,
   Pins,
@@ -42,6 +43,13 @@ export const ROUTES: Record<string, RouteConfig> = {
     icon: "icon fi fi-sr-brake-warning",
     component: Pedals,
     fullWidth: true,
+  },
+  compatibility: {
+    path: "/compatibility",
+    title: "Compatibility",
+    icon: "icon fi fi-sr-gamepad",
+    component: GameCompatibility,
+    fullWidth: false,
   },
   effects: {
     path: "/effects",

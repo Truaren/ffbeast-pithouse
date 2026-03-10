@@ -8,7 +8,10 @@ import { toast } from "sonner";
 import { ROUTES } from "@/routes";
 import { useDeviceSettingsStore } from "@/stores";
 
+import { useTitleBar } from "../TitleBarContext";
+
 export const MainLayout = () => {
+  const { extraContent } = useTitleBar();
   const resetSection = useDeviceSettingsStore((state) => state.resetSection);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +54,8 @@ export const MainLayout = () => {
         <div className="title">
           <h1>{activeRoute.title}</h1>
           <div className="buttons">
-            {activeRoute !== ROUTES.license && (
+            {extraContent}
+            {activeRoute !== ROUTES.license && !extraContent && (
               <Button
                 variant="secondary"
                 icon={"icon fi fi-rr-refresh"}

@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import "./style.scss";
 
 import { SettingField } from "@shubham0x13/ffbeast-wheel-webhid-api";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
 import { Button, Slider, ToggleSwitch } from "@/components/ui";
 import { useSettingUI } from "@/hooks/use-setting-ui";
 import { useDeviceSettingsStore, useWheelStore } from "@/stores";
-
-import "./style.scss";
 
 // ─── Torque Meter ────────────────────────────────────────────────────────────
 
@@ -71,32 +70,50 @@ const TorqueMeter = () => {
       <div className="exp_card_header">
         <i className="icon fi fi-sr-sensor-alert" />
         <h2>Torque Meter</h2>
-        <span className={`exp_badge ${connected ? "connected" : "disconnected"}`}>
+        <span
+          className={`exp_badge ${connected ? "connected" : "disconnected"}`}
+        >
           {connected ? "Live" : "No Device"}
         </span>
       </div>
       <div className="exp_card_body">
         {/* Big readout */}
         <div className="torque_readout">
-          <div className="torque_value">{pct.toFixed(1)}<span className="torque_unit">%</span></div>
-          <div className="torque_sub">~{nmEstimate} Nm · {direction}</div>
+          <div className="torque_value">
+            {pct.toFixed(1)}
+            <span className="torque_unit">%</span>
+          </div>
+          <div className="torque_sub">
+            ~{nmEstimate} Nm · {direction}
+          </div>
         </div>
 
         {/* Bar */}
         <div className="torque_bar_track">
           <div
             className="torque_bar_fill left"
-            style={{ width: `${rawTorque < 0 ? pct : 0}%`, background: "linear-gradient(90deg, #3b82f6, #60a5fa)" }}
+            style={{
+              width: `${rawTorque < 0 ? pct : 0}%`,
+              background: "linear-gradient(90deg, #3b82f6, #60a5fa)",
+            }}
           />
           <div className="torque_center_tick" />
           <div
             className="torque_bar_fill right"
-            style={{ width: `${rawTorque >= 0 ? pct : 0}%`, background: "linear-gradient(90deg, #f97316, #ef4444)" }}
+            style={{
+              width: `${rawTorque >= 0 ? pct : 0}%`,
+              background: "linear-gradient(90deg, #f97316, #ef4444)",
+            }}
           />
         </div>
 
         {/* Oscilloscope */}
-        <canvas ref={canvasRef} className="torque_canvas" width={640} height={80} />
+        <canvas
+          ref={canvasRef}
+          className="torque_canvas"
+          width={640}
+          height={80}
+        />
       </div>
     </div>
   );
@@ -128,8 +145,10 @@ const SaveSettings = () => {
       </div>
       <div className="exp_card_body">
         <p className="exp_desc">
-          Normally settings apply immediately but are <strong>lost on power cycle</strong>. This button writes all current 
-          settings to the device's non-volatile memory. The device will reboot automatically.
+          Normally settings apply immediately but are{" "}
+          <strong>lost on power cycle</strong>. This button writes all current
+          settings to the device&apos;s non-volatile memory. The device will
+          reboot automatically.
         </p>
         <Button
           variant="primary"
@@ -160,35 +179,48 @@ const SpringDampingPanel = () => {
       </div>
       <div className="exp_card_body">
         <p className="exp_desc">
-          Fine-grained control over centering spring and damping forces. These supplement DirectX game effects.
+          Fine-grained control over centering spring and damping forces. These
+          supplement DirectX game effects.
         </p>
 
         <div className="exp_sliders">
           <Slider
             label="Integrated Spring Strength (%)"
             value={effects.integratedSpringStrength}
-            onValueCommit={(v) => void setSetting(SettingField.IntegratedSpringStrength, v)}
+            onValueCommit={(v) =>
+              void setSetting(SettingField.IntegratedSpringStrength, v)
+            }
             infoPanelProps={{
-              description: "A constant hardware centering spring that always tries to return the wheel to center.",
-              impact: "Useful if a game has no FFB spring. Adds a 'return-to-center' feel without any game software.",
+              description:
+                "A constant hardware centering spring that always tries to return the wheel to center.",
+              impact:
+                "Useful if a game has no FFB spring. Adds a 'return-to-center' feel without any game software.",
             }}
           />
           <Slider
             label="Static Dampening Strength (%)"
             value={effects.staticDampeningStrength}
-            onValueCommit={(v) => void setSetting(SettingField.StaticDampeningStrength, v)}
+            onValueCommit={(v) =>
+              void setSetting(SettingField.StaticDampeningStrength, v)
+            }
             infoPanelProps={{
-              description: "Adds friction-like resistance to ALL wheel movement.",
-              impact: "Too high makes the wheel feel sluggish. Too low makes it feel light and twitchy.",
+              description:
+                "Adds friction-like resistance to ALL wheel movement.",
+              impact:
+                "Too high makes the wheel feel sluggish. Too low makes it feel light and twitchy.",
             }}
           />
           <Slider
             label="Soft Stop Dampening (%)"
             value={effects.softStopDampeningStrength}
-            onValueCommit={(v) => void setSetting(SettingField.SoftStopDampeningStrength, v)}
+            onValueCommit={(v) =>
+              void setSetting(SettingField.SoftStopDampeningStrength, v)
+            }
             infoPanelProps={{
-              description: "Dampening force applied only in the soft stop zone at the end of the motion range.",
-              impact: "Higher values provide a progressively firmer end-stop feel.",
+              description:
+                "Dampening force applied only in the soft stop zone at the end of the motion range.",
+              impact:
+                "Higher values provide a progressively firmer end-stop feel.",
             }}
           />
           <Slider
@@ -196,19 +228,26 @@ const SpringDampingPanel = () => {
             value={effects.softStopRange}
             min={0}
             max={45}
-            onValueCommit={(v) => void setSetting(SettingField.SoftStopRange, v)}
+            onValueCommit={(v) =>
+              void setSetting(SettingField.SoftStopRange, v)
+            }
             infoPanelProps={{
-              description: "Extra degrees beyond the motion range where soft stop forces are applied.",
+              description:
+                "Extra degrees beyond the motion range where soft stop forces are applied.",
               impact: "Acts as a buffer zone before the hard mechanical stop.",
             }}
           />
           <Slider
             label="Soft Stop Strength (%)"
             value={effects.softStopStrength}
-            onValueCommit={(v) => void setSetting(SettingField.SoftStopStrength, v)}
+            onValueCommit={(v) =>
+              void setSetting(SettingField.SoftStopStrength, v)
+            }
             infoPanelProps={{
-              description: "How strongly the device pushes back when approaching the end of the motion range.",
-              impact: "Too high can feel like hitting a wall. Find a value that feels like firm, natural resistance.",
+              description:
+                "How strongly the device pushes back when approaching the end of the motion range.",
+              impact:
+                "Too high can feel like hitting a wall. Find a value that feels like firm, natural resistance.",
             }}
           />
         </div>
@@ -229,7 +268,12 @@ const DirectControlTest = () => {
   const [isActive, setIsActive] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const sendControl = (spring: number, constant: number, periodic: number, drop: number) => {
+  const sendControl = (
+    spring: number,
+    constant: number,
+    periodic: number,
+    drop: number,
+  ) => {
     try {
       void api.sendDirectControl({
         springForce: Math.round((spring / 100) * 10000),
@@ -249,7 +293,9 @@ const DirectControlTest = () => {
       intervalRef.current = setInterval(() => {
         sendControl(springForce, constantForce, periodicForce, forceDrop);
       }, 50);
-      toast.info("Direct Control active. Device will return to normal on stop.");
+      toast.info(
+        "Direct Control active. Device will return to normal on stop.",
+      );
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
       // Send zeros to release
@@ -269,7 +315,7 @@ const DirectControlTest = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [springForce, constantForce, periodicForce, forceDrop, isActive]);
 
   // Cleanup on unmount
@@ -278,7 +324,7 @@ const DirectControlTest = () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       sendControl(0, 0, 0, 0);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -292,14 +338,20 @@ const DirectControlTest = () => {
       </div>
       <div className="exp_card_body">
         <p className="exp_desc">
-          Send forces <strong>directly from this app</strong>, bypassing DirectX entirely. 
-          Great for testing your motor and FFB configuration without a game. 
-          Device returns to normal mode automatically when stopped.
+          Send forces <strong>directly from this app</strong>, bypassing DirectX
+          entirely. Great for testing your motor and FFB configuration without a
+          game. Device returns to normal mode automatically when stopped.
         </p>
 
-        <ToggleSwitch label="Activate Direct Control" checked={isActive} onToggle={handleToggle} />
+        <ToggleSwitch
+          label="Activate Direct Control"
+          checked={isActive}
+          onToggle={handleToggle}
+        />
 
-        <div className={`exp_sliders ${!isActive ? "exp_sliders_disabled" : ""}`}>
+        <div
+          className={`exp_sliders ${!isActive ? "exp_sliders_disabled" : ""}`}
+        >
           <Slider
             label="Spring Force (%)"
             value={springForce}
@@ -307,7 +359,11 @@ const DirectControlTest = () => {
             max={100}
             onValueChange={(v) => setSpringForce(v)}
             onValueCommit={(v) => setSpringForce(v)}
-            infoPanelProps={{ description: "Centering force — positive = center, negative = anti-center.", impact: "" }}
+            infoPanelProps={{
+              description:
+                "Centering force — positive = center, negative = anti-center.",
+              impact: "",
+            }}
           />
           <Slider
             label="Constant Force (%)"
@@ -316,7 +372,11 @@ const DirectControlTest = () => {
             max={100}
             onValueChange={(v) => setConstantForce(v)}
             onValueCommit={(v) => setConstantForce(v)}
-            infoPanelProps={{ description: "Constant push in one direction. -100 = full left, +100 = full right.", impact: "" }}
+            infoPanelProps={{
+              description:
+                "Constant push in one direction. -100 = full left, +100 = full right.",
+              impact: "",
+            }}
           />
           <Slider
             label="Periodic / Vibration (%)"
@@ -325,33 +385,56 @@ const DirectControlTest = () => {
             max={100}
             onValueChange={(v) => setPeriodicForce(v)}
             onValueCommit={(v) => setPeriodicForce(v)}
-            infoPanelProps={{ description: "Periodic oscillation force. Sent as a raw value to the periodic channel.", impact: "" }}
+            infoPanelProps={{
+              description:
+                "Periodic oscillation force. Sent as a raw value to the periodic channel.",
+              impact: "",
+            }}
           />
           <Slider
             label="Force Drop (%) — Dampens DirectX"
             value={forceDrop}
             onValueChange={(v) => setForceDrop(v)}
             onValueCommit={(v) => setForceDrop(v)}
-            infoPanelProps={{ description: "Reduces all DirectX forces by this %. 100 = completely mutes game FFB.", impact: "" }}
+            infoPanelProps={{
+              description:
+                "Reduces all DirectX forces by this %. 100 = completely mutes game FFB.",
+              impact: "",
+            }}
           />
         </div>
 
         <div className="exp_buttons_row">
           <Button
             variant="secondary"
-            onClick={() => { setSpringForce(0); setConstantForce(0); setPeriodicForce(0); setForceDrop(0); }}
+            onClick={() => {
+              setSpringForce(0);
+              setConstantForce(0);
+              setPeriodicForce(0);
+              setForceDrop(0);
+            }}
           >
             Reset All to 0
           </Button>
           <Button
             variant="primary"
-            onClick={() => { setSpringForce(50); setConstantForce(0); setPeriodicForce(0); setForceDrop(0); }}
+            onClick={() => {
+              setSpringForce(50);
+              setConstantForce(0);
+              setPeriodicForce(0);
+              setForceDrop(0);
+            }}
           >
             Test: Spring
           </Button>
           <Button
             variant="primary"
-            onClick={() => { setSpringForce(0); setConstantForce(0); setPeriodicForce(60); setForceDrop(0); }}
+            onClick={() => {
+              setSpringForce(0);
+              setConstantForce(0);
+              setPeriodicForce(60);
+              setForceDrop(0);
+            }}
           >
             Test: Vibration
           </Button>

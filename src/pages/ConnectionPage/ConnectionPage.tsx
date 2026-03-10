@@ -1,12 +1,15 @@
 import "./style.scss";
 
 import { Button } from "@components/ui";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
 import { useWheelStore } from "@/stores";
 
 export const ConnectionPage = () => {
+  const [isBypassed, setIsBypassed] = useState(false);
+
   const { api, isConnected } = useWheelStore(
     useShallow((state) => ({
       api: state.api,
@@ -14,7 +17,7 @@ export const ConnectionPage = () => {
     })),
   );
 
-  if (isConnected) return null;
+  if (isConnected || isBypassed) return null;
 
   return (
     <div className="connection_page">
@@ -86,6 +89,16 @@ export const ConnectionPage = () => {
             >
               Connect Device
             </Button>
+
+            {import.meta.env.DEV && (
+              <Button
+                variant="secondary"
+                style={{ margin: "0rem", marginTop: "0.5rem" }}
+                onClick={() => setIsBypassed(true)}
+              >
+                Skip (Dev Mode)
+              </Button>
+            )}
           </div>
 
           <div className="footer_info">

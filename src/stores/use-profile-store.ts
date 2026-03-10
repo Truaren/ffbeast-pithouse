@@ -250,7 +250,7 @@ export const useProfileStore = create<ProfileStore>()(
 interface ElectronWindow extends Window {
   require: (module: "electron") => {
     ipcRenderer: {
-      invoke: (channel: string, ...args: unknown[]) => Promise<any>;
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     };
   };
 }
@@ -260,7 +260,8 @@ if (typeof window !== "undefined" && win.require) {
   const { ipcRenderer } = win.require("electron");
 
   // Load from disk on startup
-  void ipcRenderer.invoke("load-profiles").then((diskProfiles: Profile[] | null) => {
+  void ipcRenderer.invoke("load-profiles").then((res) => {
+    const diskProfiles = res as Profile[] | null;
     if (diskProfiles && Array.isArray(diskProfiles)) {
       console.log("Profiles loaded from disk, syncing store...");
       useProfileStore.setState({ profiles: diskProfiles });

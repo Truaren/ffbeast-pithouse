@@ -365,22 +365,42 @@ export const Settings = () => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
 
-    data._captcha = "false";
+    const workerUrl =
+      "https://summer-snowflake-b8f7.trueaaren.workers.dev/feedback";
+
+    // Format for Discord Webhook
+    const discordPayload = {
+      embeds: [
+        {
+          title: "New Bug Report / Feature Request!",
+          description: rawData.message as string,
+          color: 0x3b82f6, // Blue
+          author: {
+            name: rawData.name as string,
+          },
+          fields: [
+            {
+              name: "Contact Email",
+              value: (rawData.email as string) || "Not provided",
+              inline: true,
+            },
+            { name: "App Version", value: `v${__APP_VERSION__}`, inline: true },
+          ],
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
 
     try {
-      const res = await fetch(
-        "https://formsubmit.co/ajax/trueaaren@gmail.com",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify(data),
+      const res = await fetch(workerUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(discordPayload),
+      });
 
       if (res.ok) {
         toast.success("Feedback submitted successfully!");

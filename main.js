@@ -287,6 +287,47 @@ ipcMain.handle("load-preferences", () => {
   return null;
 });
 
+// IPC: submit feedback to avoid CORS issues in renderer
+ipcMain.handle("submit-feedback", async (_event, data) => {
+  try {
+    const { net } = require("electron");
+    return new Promise((resolve) => {
+      const request = net.request({
+        method: "POST",
+        url: "https://formsubmit.co/ajax/trueaaren@gmail.com",
+      });
+
+      request.setHeader("Content-Type", "application/json");
+      request.setHeader("Accept", "application/json");
+
+      let responseData = "";
+
+      request.on("response", (response) => {
+        response.on("data", (chunk) => {
+          responseData += chunk.toString();
+        });
+
+        response.on("end", () => {
+          resolve({
+            ok: response.statusCode >= 200 && response.statusCode < 300,
+            status: response.statusCode,
+            data: responseData,
+          });
+        });
+      });
+
+      request.on("error", (error) => {
+        resolve({ ok: false, error: error.message });
+      });
+
+      request.write(JSON.stringify(data));
+      request.end();
+    });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
 // ─── PEDALS HID SYSTEM ────────────────────────────────────────────────────────
 // Uses node-hid to talk to FEEL-VR Pedals, loading protocol from pedals/index.js
 

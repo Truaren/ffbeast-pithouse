@@ -31,11 +31,16 @@ interface AppPreferencesActions {
   setPedalImage: (file: File) => Promise<void>;
   togglePedalVisibility: (pedal: "Throttle" | "Brake" | "Clutch") => void;
   togglePedalInversion: (pedal: "Throttle" | "Brake" | "Clutch") => void;
-  setPedalBinding: (pedal: "Throttle" | "Brake" | "Clutch", axisIndex: number) => void;
+  setPedalBinding: (
+    pedal: "Throttle" | "Brake" | "Clutch",
+    axisIndex: number,
+  ) => void;
   setAutoCheckUpdates: (val: boolean) => void;
   addAutoProfile: (exeName: string, profileId: string) => void;
   removeAutoProfile: (exeName: string) => void;
-  setSidebarConfig: (config: { id: string; visible: boolean; order: number }[]) => void;
+  setSidebarConfig: (
+    config: { id: string; visible: boolean; order: number }[],
+  ) => void;
   replacePreferences: (preferences: AppPreferences) => void;
 }
 
@@ -208,7 +213,9 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
           set((state) => {
             const profiles = state.preferences.autoProfiles || [];
             // Remove existing mapping for this exe if it exists, then add the new one
-            const filtered = profiles.filter((p) => p.exeName.toLowerCase() !== exeName.toLowerCase());
+            const filtered = profiles.filter(
+              (p) => p.exeName.toLowerCase() !== exeName.toLowerCase(),
+            );
             return {
               preferences: {
                 ...state.preferences,
@@ -224,7 +231,9 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
             return {
               preferences: {
                 ...state.preferences,
-                autoProfiles: profiles.filter((p) => p.exeName.toLowerCase() !== exeName.toLowerCase()),
+                autoProfiles: profiles.filter(
+                  (p) => p.exeName.toLowerCase() !== exeName.toLowerCase(),
+                ),
               },
             };
           });
@@ -262,7 +271,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 interface ElectronWindow extends Window {
   require: (module: "electron") => {
     ipcRenderer: {
-      invoke: (channel: string, ...args: unknown[]) => Promise<any>;
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     };
   };
 }
@@ -272,14 +281,13 @@ if (typeof window !== "undefined" && winPrefs.require) {
   const { ipcRenderer } = winPrefs.require("electron");
 
   // Load from disk on startup
-  void ipcRenderer
-    .invoke("load-preferences")
-    .then((diskPrefs: AppPreferences | null) => {
-      if (diskPrefs) {
-        console.log("App preferences loaded from disk, syncing store...");
-        useAppPreferencesStore.getState().replacePreferences(diskPrefs);
-      }
-    });
+  void ipcRenderer.invoke("load-preferences").then((res) => {
+    const diskPrefs = res as AppPreferences | null;
+    if (diskPrefs) {
+      console.log("App preferences loaded from disk, syncing store...");
+      useAppPreferencesStore.getState().replacePreferences(diskPrefs);
+    }
+  });
 
   // Subscribe to changes and save to disk
   useAppPreferencesStore.subscribe(
