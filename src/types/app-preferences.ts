@@ -19,4 +19,5 @@ export interface AppPreferences {
   autoCheckUpdates: boolean;
   autoProfiles: { exeName: string; profileId: string }[];
   sidebarConfig?: { id: string; visible: boolean; order: number }[];
+  isPro: boolean;
 }

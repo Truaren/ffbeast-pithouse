@@ -36,6 +36,7 @@ interface AppPreferencesActions {
     axisIndex: number,
   ) => void;
   setAutoCheckUpdates: (val: boolean) => void;
+  setIsPro: (val: boolean) => void;
   addAutoProfile: (exeName: string, profileId: string) => void;
   removeAutoProfile: (exeName: string) => void;
   setSidebarConfig: (
@@ -205,6 +206,15 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
             preferences: {
               ...state.preferences,
               autoCheckUpdates: val,
+            },
+          }));
+        },
+
+        setIsPro: (val) => {
+          set((state) => ({
+            preferences: {
+              ...state.preferences,
+              isPro: val,
             },
           }));
         },

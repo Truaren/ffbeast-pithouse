@@ -52,14 +52,43 @@
     .info {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      gap: 0.1rem;
       padding: 0rem;
+      margin-left: 0.5rem;
+
       .version {
         font-size: 0.55rem;
         color: var(--text-secondary);
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.1rem;
+      }
+      .license_badge {
+        font-size: 0.5rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        padding: 0.15rem 0.45rem;
+        border-radius: 0.3rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        line-height: 1;
+
+        &.free {
+          background: #2ed573;
+          color: #fff;
+          &:hover {
+            box-shadow: 0 0 8px rgba(46, 213, 115, 0.5);
+            transform: scale(1.06);
+          }
+        }
+
+        &.pro {
+          background: #ff4757;
+          color: #fff;
+          cursor: default;
+          box-shadow: 0 0 6px rgba(255, 71, 87, 0.4);
+        }
       }
 
       .tag {
@@ -114,7 +143,7 @@
       padding: 0.45rem 0.9rem;
       border-radius: 0.75rem;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-secondary);
       font-size: 0.8rem;
       font-weight: 500;
@@ -123,9 +152,14 @@
       white-space: nowrap;
       position: relative;
 
-      i { font-size: 0.75rem; }
+      i {
+        font-size: 0.75rem;
+      }
 
-      .chevron { margin-left: 0.1rem; font-size: 0.6rem; }
+      .chevron {
+        margin-left: 0.1rem;
+        font-size: 0.6rem;
+      }
 
       .profile_name {
         font-weight: 600;
@@ -187,60 +221,73 @@
   }
 
   .device_actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
     margin-left: 2rem;
+
+    .actions_grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
 
     .action_btn {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.4rem 0.85rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 0.6rem;
       border: 1px solid transparent;
-      font-size: 0.8rem;
-      font-weight: 500;
+      font-size: 0.75rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
       line-height: 1;
       white-space: nowrap;
+      min-width: 120px;
 
       i {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
       }
 
-      &.disabled, &:disabled {
+      &.disabled,
+      &:disabled {
         opacity: 0.35;
         cursor: not-allowed;
       }
 
-      &.reboot_btn {
-        background: rgba(130, 130, 160, 0.12);
-        color: #aaa;
-        border-color: rgba(130, 130, 160, 0.25);
+      &.dfu_btn {
+        background: #fef9c3; // light yellow
+        color: #ca8a04; // orange-brown
+        border-color: #fde047;
         &:hover:not(:disabled) {
-          background: rgba(130, 130, 160, 0.25);
-          color: #ccc;
+          background: #fef08a;
+        }
+      }
+
+      &.donate_btn {
+        background: transparent;
+        color: #ef4444; // red
+        border: 1px solid #ef4444;
+        &:hover {
+          background: rgba(239, 68, 68, 0.05);
+          box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+        }
+      }
+
+      &.reboot_btn {
+        background: #f1f5f9; // gray
+        color: #64748b;
+        border-color: #cbd5e1;
+        &:hover:not(:disabled) {
+          background: #e2e8f0;
         }
       }
 
       &.save_reboot_btn {
-        background: rgba(var(--accent-rgb, 200, 50, 50), 0.12);
-        color: var(--accent);
-        border-color: rgba(var(--accent-rgb, 200, 50, 50), 0.3);
+        background: #f0fdfa; // very light teal/green
+        color: #0d9488; // teal
+        border-color: #5eead4;
         &:hover:not(:disabled) {
-          background: rgba(var(--accent-rgb, 200, 50, 50), 0.22);
-        }
-      }
-
-      &.dfu_btn {
-        background: rgba(234, 179, 8, 0.1);
-        color: #ca8a04;
-        border-color: rgba(234, 179, 8, 0.3);
-        &:hover:not(:disabled) {
-          background: rgba(234, 179, 8, 0.2);
-          color: #eab308;
+          background: #ccfbf1;
         }
       }
     }

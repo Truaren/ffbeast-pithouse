@@ -23,6 +23,7 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = {
   },
   autoCheckUpdates: true,
   autoProfiles: [],
+  isPro: false,
 };
 
 export const PROFILE_EXPORT_VERSION = 1;

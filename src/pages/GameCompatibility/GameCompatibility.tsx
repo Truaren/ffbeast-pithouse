@@ -474,7 +474,7 @@ export const GameCompatibility = () => {
                     }}
                     title="Submit Feedback for this game"
                   >
-                    Feedback
+                    Leave Review
                   </button>
                 </div>
               </div>
@@ -541,18 +541,24 @@ export const GameCompatibility = () => {
                   </div>
 
                   {game.devices.length > 0 && (
-                    <div style={{ marginTop: "0.4rem" }}>
-                      <strong>Tested devices:</strong>
-                      <ul
+                    <div style={{ marginTop: "0.4rem", width: "100%" }}>
+                      <div
                         style={{
-                          paddingLeft: "1.2rem",
-                          margin: "0.2rem 0 0 0",
+                          fontSize: "0.8rem",
+                          fontWeight: "bold",
+                          textAlign: "right",
+                          marginBottom: "4px",
                         }}
                       >
+                        Tested devices:
+                      </div>
+                      <div className="device-tags">
                         {game.devices.map((d) => (
-                          <li key={d}>{d}</li>
+                          <div key={d} className="device-tag">
+                            {d}
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
                 </div>

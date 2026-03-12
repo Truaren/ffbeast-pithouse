@@ -24,7 +24,7 @@ export const ConnectionPage = () => {
       <div className="connection_container">
         <div className="connection_content">
           <div className="brand_section">
-            <h1 className="brand_title">FFBeast</h1>
+            <h1 className="brand_title">FFBeast Pit House</h1>
             <span className="brand_version">V{__APP_VERSION__}</span>
           </div>
 
@@ -63,9 +63,6 @@ export const ConnectionPage = () => {
 
             <Button
               variant="primary"
-              style={{
-                margin: "0rem",
-              }}
               onClick={() => {
                 api
                   .connect()
@@ -93,7 +90,7 @@ export const ConnectionPage = () => {
             {import.meta.env.DEV && (
               <Button
                 variant="secondary"
-                style={{ margin: "0rem", marginTop: "0.5rem" }}
+                className="skip_btn"
                 onClick={() => setIsBypassed(true)}
               >
                 Skip (Dev Mode)

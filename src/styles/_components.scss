@@ -1,0 +1,48 @@
+@import "./mixins";
+
+.card_base {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.divider_comp {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border);
+  margin: 1rem 0;
+}
+
+.input_box_comp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  input {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.8rem 1rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15);
+    }
+
+    &[readonly] {
+      opacity: 0.7;
+      cursor: default;
+    }
+  }
+}

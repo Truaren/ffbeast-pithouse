@@ -35,99 +35,30 @@ const LinearSteeringGauge = ({
   const fillWidth = Math.abs(pointerPct - 50);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        marginBottom: "1rem",
-        marginTop: "0.25rem",
-      }}
-    >
-      {/* Background Track */}
+    <div className="steering_gauge_container">
       <div
+        className="steering_gauge_track"
         style={{
           width: `${widthPct}%`,
           maxWidth: "400px",
-          height: "10px",
-          backgroundColor: "var(--bg-secondary)",
-          border: "1px solid var(--border)",
-          borderRadius: "5px",
-          position: "relative",
-          boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
-          overflow: "hidden",
         }}
       >
-        {/* Tic marks for aesthetics (every 25%) */}
-        <div
-          style={{
-            position: "absolute",
-            left: "25%",
-            top: 0,
-            bottom: 0,
-            width: "1px",
-            backgroundColor: "var(--border)",
-            opacity: 0.5,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: "75%",
-            top: 0,
-            bottom: 0,
-            width: "1px",
-            backgroundColor: "var(--border)",
-            opacity: 0.5,
-          }}
-        />
+        <div className="steering_gauge_tic tic_25" />
+        <div className="steering_gauge_tic tic_75" />
+        <div className="steering_gauge_center" />
 
-        {/* Center Zero Tick */}
         <div
+          className="steering_gauge_fill animated-gradient-fill"
           style={{
-            position: "absolute",
-            left: "50%",
-            top: 0,
-            bottom: 0,
-            width: "2px",
-            backgroundColor: "var(--text-secondary)",
-            transform: "translateX(-50%)",
-            zIndex: 2,
-          }}
-        />
-
-        {/* Filled Distance */}
-        <div
-          className="animated-gradient-fill"
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
             left: `${fillLeft}%`,
             width: `${fillWidth}%`,
-            background:
-              "linear-gradient(90deg, var(--accent) 0%, #3b82f6 50%, var(--accent) 100%)",
-            opacity: 0.9,
-            transition: "none",
-            zIndex: 1,
           }}
         />
 
-        {/* Pointer Thumb */}
         <div
+          className="steering_gauge_pointer"
           style={{
-            position: "absolute",
-            top: "-2px",
-            bottom: "-2px",
             left: `${pointerPct}%`,
-            width: "4px",
-            backgroundColor: "var(--text-primary)",
-            border: "1px solid var(--accent)",
-            borderRadius: "2px",
-            transform: "translateX(-50%)",
-            transition: "none",
-            zIndex: 3,
-            boxShadow: "0 0 5px var(--accent)",
           }}
         />
       </div>
@@ -474,17 +405,13 @@ export const Dashboard = () => {
               onClick={startEditingName}
               className="wheel_name_display"
               title="Click to rename"
-              style={{ minWidth: "100px", minHeight: "1.25rem" }}
             >
               {safeWheelName}
             </h2>
           )}
         </div>
 
-        <div
-          className="angle_display"
-          style={{ marginBottom: "0", marginTop: "1rem" }}
-        >
+        <div className="angle_display">
           <span className="angle_value">{Math.round(positionDegrees)}°</span>
         </div>
 
@@ -493,11 +420,8 @@ export const Dashboard = () => {
           maxAngle={effects.motionRange}
         />
 
-        <div
-          className="wheel_image_container"
-          style={{ marginBottom: "0.5rem", height: "230px" }}
-        >
-          <div className="wheel_img_wrapper" style={{ zIndex: 1 }}>
+        <div className="wheel_image_container">
+          <div className="wheel_img_wrapper">
             <img
               src={wheelImageUrl}
               alt="Steering Wheel"
@@ -605,7 +529,6 @@ export const Dashboard = () => {
                 onClick={startEditingBaseName}
                 className="base_name_display"
                 title="Click to rename"
-                style={{ minWidth: "100px", minHeight: "1.25rem" }}
               >
                 {safeBaseName}
               </h2>
@@ -617,10 +540,7 @@ export const Dashboard = () => {
               {baseImageUrl ? (
                 <img src={baseImageUrl} alt="Base" className="base_img" />
               ) : (
-                <i
-                  className="icon fi fi-rr-computer"
-                  style={{ fontSize: "4rem", color: "#555" }}
-                ></i>
+                <i className="icon fi fi-rr-computer base_icon_placeholder" />
               )}
               <label className="upload_overlay">
                 <i className="icon fi fi-rr-shuffle"></i>
@@ -699,7 +619,6 @@ export const Dashboard = () => {
                 onClick={startEditingPedalName}
                 className="pedal_name_display"
                 title="Click to rename"
-                style={{ minWidth: "100px", minHeight: "1.1rem" }}
               >
                 {safePedalName}
               </h2>
@@ -712,10 +631,7 @@ export const Dashboard = () => {
                 {pedalImageUrl ? (
                   <img src={pedalImageUrl} alt="Pedals" className="pedal_img" />
                 ) : (
-                  <i
-                    className="icon fi fi-sr-box-open"
-                    style={{ fontSize: "4rem", color: "#555" }}
-                  ></i>
+                  <i className="icon fi fi-sr-box-open pedal_icon_placeholder" />
                 )}
                 <label className="upload_overlay">
                   <i className="icon fi fi-rr-shuffle"></i>
@@ -728,7 +644,7 @@ export const Dashboard = () => {
               </div>
               <div className="pedal_status_text">
                 {activePad ? (
-                  <span className="status" style={{ color: "#10b981" }}>
+                  <span className="status connected">
                     <i className="icon fi fi-sr-bullet"></i> Connected
                   </span>
                 ) : (
@@ -805,7 +721,6 @@ export const Dashboard = () => {
                           <div
                             className="binding_message"
                             onClick={cancelBinding}
-                            style={{ cursor: "pointer" }}
                           >
                             Press pedal or click to cancel...
                           </div>

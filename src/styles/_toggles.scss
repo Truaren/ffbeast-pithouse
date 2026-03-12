@@ -1,0 +1,52 @@
+@mixin toggle-base {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+  background-color: rgba(var(--text-primary-rgb), 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+
+  :global(.dark) & {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  outline: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+  padding: 0;
+
+  &:hover:not(.disabled) {
+    opacity: 0.8;
+  }
+
+  &.checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+
+    .slider {
+      transform: translateX(1.25rem);
+    }
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .slider {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: var(--bg-primary);
+    border-radius: 50%;
+    transition: transform 200ms ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.toggle_switch_comp {
+  @include toggle-base;
+}

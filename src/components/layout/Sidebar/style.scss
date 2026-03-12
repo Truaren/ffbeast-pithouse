@@ -62,8 +62,9 @@
 
         i {
           font-size: 1rem;
-          color: var(--text-primary);
+          color: var(--accent);
           transition: 0.2s ease-in-out;
+          opacity: 0.8;
         }
       }
     }
@@ -101,8 +102,9 @@
 
       i {
         font-size: 1rem;
-        color: var(--text-primary);
+        color: var(--accent);
         transition: 0.2s ease-in-out;
+        opacity: 0.8;
       }
     }
   }

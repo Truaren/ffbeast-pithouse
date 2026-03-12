@@ -381,7 +381,7 @@ const CurveEditor = ({
                 cx={cx}
                 cy={cy}
                 r={6}
-                fill="white"
+                fill="var(--bg-secondary)"
                 stroke={color}
                 strokeWidth="2"
                 style={{ cursor: "grab" }}
@@ -425,7 +425,7 @@ const CalibModal = ({
             <span style={{ color }}>{DEFAULT_LABELS[cal.pedal]}</span>
           </h2>
           <button className="cal_modal_close" onClick={onCancel}>
-            ✕
+            <i className="fi fi-rr-cross" />
           </button>
         </div>
         <p className="cal_modal_desc">
@@ -512,7 +512,7 @@ const PedalCard = (p: CardProps) => {
             {p.label} <em>(hidden)</em>
           </span>
           <button className="card_icon_btn" onClick={p.onHide} title="Show">
-            👁
+            <i className="fi fi-rr-eye" />
           </button>
         </div>
       </div>
@@ -563,17 +563,17 @@ const PedalCard = (p: CardProps) => {
             onClick={() => setEditing(true)}
             title="Rename"
           >
-            ✏️
+            <i className="fi fi-rr-pencil" />
           </button>
           <button
             className="card_icon_btn"
             onClick={() => setCollapsed((v) => !v)}
             title={collapsed ? "Expand" : "Collapse"}
           >
-            {collapsed ? "▼" : "▲"}
+            <i className={`fi fi-rr-angle-${collapsed ? "down" : "up"}`} />
           </button>
           <button className="card_icon_btn" onClick={p.onHide} title="Hide">
-            🙈
+            <i className="fi fi-rr-eye-crossed" />
           </button>
         </div>
       </div>
@@ -670,7 +670,14 @@ const PedalCard = (p: CardProps) => {
                 onClick={p.onCalibrate}
                 disabled={!p.isConnected}
               >
-                {isCalibrating ? "⚡ Calibrating…" : "Start Calibrating"}
+                {isCalibrating ? (
+                  <>
+                    <i className="fi fi-sr-bolt" />
+                    Calibrating…
+                  </>
+                ) : (
+                  "Start Calibrating"
+                )}
               </button>
               {p.configMinMax && (
                 <div className="cal_debug_row">

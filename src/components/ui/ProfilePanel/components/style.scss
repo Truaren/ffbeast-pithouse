@@ -1,0 +1,383 @@
+/* ============================================================
+   Preset Detail Modal — matches HTML mockup, theme-aware
+   ============================================================ */
+
+.pdm_overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .pdm_popup_wrapper {
+    display: flex;
+    gap: 1.5rem;
+    width: 950px;
+    max-width: 95vw;
+    max-height: 90vh;
+    animation: pdmPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pdm_popup {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+  }
+}
+
+@keyframes pdmPopIn {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Sidebar */
+.pdm_sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+
+  .pdm_sidebar_section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &.stretch {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  .pdm_sidebar_title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .pdm_description_bubble {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    word-break: break-word;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -8px;
+      top: 20px;
+      width: 16px;
+      height: 16px;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transform: rotate(45deg);
+    }
+  }
+
+  .pdm_bottom_group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  .pdm_sidebar_stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    background: rgba(var(--accent-rgb), 0.08);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(var(--accent-rgb), 0.15);
+
+    .pdm_stat_item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      i {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+
+        &.active {
+          color: #ff4757;
+        }
+      }
+
+      .pdm_stat_info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .pdm_stat_val {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+
+      .pdm_stat_label {
+        font-size: 0.65rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .pdm_sidebar_actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex-shrink: 0;
+
+    .pdm_like_btn {
+      width: 100%;
+      height: 48px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      i {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      &:hover:not(:disabled) {
+        border-color: #ff4757;
+        background: rgba(255, 71, 87, 0.05);
+        color: #ff4757;
+
+        i {
+          color: #ff4757;
+          transform: scale(1.2);
+        }
+      }
+
+      &.liked {
+        background: #ff4757;
+        border-color: #ff4757;
+        color: white;
+
+        i {
+          color: white;
+        }
+
+        &:hover {
+          opacity: 0.9;
+        }
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    }
+  }
+}
+
+/* Header */
+.pdm_header {
+  padding: 1rem 1.5rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .pdm_title_col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .pdm_badges_row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .pdm_game_tag {
+    background: var(--bg-secondary);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .pdm_version_badge {
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    text-transform: uppercase;
+
+    &.pro {
+      background: rgba(255, 71, 87, 0.15);
+      color: #ff4757;
+      border: 1px solid #ff4757;
+    }
+    &.free {
+      background: rgba(46, 213, 115, 0.15);
+      color: #2ed573;
+      border: 1px solid #2ed573;
+    }
+  }
+
+  .pdm_title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .pdm_author {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .pdm_close_btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    flex-shrink: 0;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}
+
+/* Body — 3-column like the HTML mockup */
+.pdm_body {
+  flex: 1;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  align-content: start;
+  overflow-y: auto;
+}
+
+/* Section */
+.pdm_section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .pdm_section_header {
+    display: flex;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pdm_param_list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem; // matches html mockup .param-grid gap
+  }
+}
+
+/* Param row */
+.pdm_param_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  border: 1px solid transparent;
+
+  &.pro {
+    border-left: 2px solid rgba(var(--accent-rgb), 0.4);
+  }
+
+  &.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pdm_param_label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pdm_param_value {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .pdm_pro_micro {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+    font-size: 0.55rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+    font-weight: 900;
+  }
+
+  .pdm_lock_icon {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+  }
+}
+
+/* Footer */
+.pdm_footer {
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border);
+}

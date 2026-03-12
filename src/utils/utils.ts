@@ -14,3 +14,12 @@ export function formatDeviceId(deviceId: number[]) {
     .map((part) => part.toString(16).toUpperCase().padStart(8, "0"))
     .join("-");
 }
+
+export function getClientId() {
+  let clientId = localStorage.getItem("clientId");
+  if (!clientId) {
+    clientId = crypto.randomUUID();
+    localStorage.setItem("clientId", clientId);
+  }
+  return clientId;
+}

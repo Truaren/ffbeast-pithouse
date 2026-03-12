@@ -1,13 +1,12 @@
 import "./style.scss";
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary";
   icon?: string;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
   disabled?: boolean;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const Button = ({
@@ -17,14 +16,14 @@ export const Button = ({
   style,
   children,
   disabled = false,
-  onClick,
+  ...props
 }: ButtonProps) => {
   return (
     <button
       className={`button_comp ${variant} ${className} ${disabled ? "disabled" : ""}`}
       style={style}
       disabled={disabled}
-      onClick={(e) => onClick?.(e)}
+      {...props}
     >
       {icon && <i className={icon} />}
       {children}

@@ -1,17 +1,27 @@
 import "./style.scss";
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
-import { DonateModal, ProfilePanel } from "@/components/ui";
-import { useProfileStore, useWheelStore } from "@/stores";
+import { DonateModal } from "@/components/ui/DonateModal/DonateModal";
+import { ProfilePanel } from "@/components/ui/ProfilePanel/ProfilePanel";
+import {
+  useAppPreferencesStore,
+  useProfileStore,
+  useWheelStore,
+} from "@/stores";
 import { confirmToast } from "@/utils/toast";
 
 export const Topbar = () => {
   const { activeProfile, isDirty } = useProfileStore();
   const [showProfiles, setShowProfiles] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
+  const navigate = useNavigate();
+
+  const { preferences } = useAppPreferencesStore();
+  const isPro = preferences.isPro ?? false;
 
   const activeStats = activeProfile
     ? {
@@ -58,6 +68,12 @@ export const Topbar = () => {
       );
   };
 
+  const handleBadgeClick = () => {
+    if (!isPro) {
+      void navigate("/settings", { state: { tab: "license" } });
+    }
+  };
+
   return (
     <div className="topbar">
       <div className="left">
@@ -65,53 +81,57 @@ export const Topbar = () => {
           <h1>FFBeast Pit House</h1>
         </div>
         <div className="info">
-          <span className="version">v{__APP_VERSION__}</span>
+          <span className="version">v3.0.0</span>
+          <button
+            className={`license_badge ${isPro ? "pro" : "free"}`}
+            onClick={handleBadgeClick}
+            title={
+              isPro ? "PRO License Active" : "Click to activate PRO license"
+            }
+          >
+            {isPro ? "PRO" : "FREE"}
+          </button>
         </div>
       </div>
 
       <div className="device_actions">
-        <button
-          className={`action_btn dfu_btn ${!isConnected ? "disabled" : ""}`}
-          onClick={handleSwitchToDfu}
-          disabled={!isConnected}
-          title="Switch to DFU mode for firmware updates"
-        >
-          <i className="icon fi fi-sr-bolt" />
-          Switch to DFU
-        </button>
-        <button
-          className={`action_btn reboot_btn ${!isConnected ? "disabled" : ""}`}
-          onClick={handleReboot}
-          disabled={!isConnected}
-          title="Reboot the controller without saving"
-        >
-          <i className="icon fi fi-sr-rotate-right" />
-          Reboot
-        </button>
-        <button
-          className={`action_btn save_reboot_btn ${!isConnected ? "disabled" : ""}`}
-          onClick={handleSaveAndReboot}
-          disabled={!isConnected}
-          title="Save current settings to flash memory and reboot"
-        >
-          <i className="icon fi fi-sr-floppy-disks" />
-          Save &amp; Reboot
-        </button>
-
-        <button
-          className="action_btn donate_btn"
-          onClick={() => setShowDonate(true)}
-          title="Support the project or request a feature!"
-          style={{
-            background: "linear-gradient(45deg, #ff4757, #ff6b81)",
-            color: "white",
-            border: "none",
-            boxShadow: "0 2px 10px rgba(255, 71, 87, 0.3)",
-          }}
-        >
-          <i className="icon fi fi-sr-heart" />
-          Donate
-        </button>
+        <div className="actions_grid">
+          <button
+            className={`action_btn dfu_btn ${!isConnected ? "disabled" : ""}`}
+            onClick={handleSwitchToDfu}
+            disabled={!isConnected}
+            title="Switch to DFU mode for firmware updates"
+          >
+            <i className="icon fi fi-sr-bolt" />
+            Switch to DFU
+          </button>
+          <button
+            className="action_btn donate_btn"
+            onClick={() => setShowDonate(true)}
+            title="Support the developer"
+          >
+            <i className="icon fi fi-sr-heart" />
+            Donate
+          </button>
+          <button
+            className={`action_btn reboot_btn ${!isConnected ? "disabled" : ""}`}
+            onClick={handleReboot}
+            disabled={!isConnected}
+            title="Reboot the controller without saving"
+          >
+            <i className="icon fi fi-sr-rotate-right" />
+            Reboot
+          </button>
+          <button
+            className={`action_btn save_reboot_btn ${!isConnected ? "disabled" : ""}`}
+            onClick={handleSaveAndReboot}
+            disabled={!isConnected}
+            title="Save current settings to flash memory and reboot"
+          >
+            <i className="icon fi fi-sr-floppy-disks" />
+            Save &amp; Reboot
+          </button>
+        </div>
       </div>
 
       <div className="right" style={{ position: "relative" }}>
@@ -133,10 +153,6 @@ export const Topbar = () => {
               <span className="pstat">
                 <i className="icon fi fi-rr-rotate-right" />
                 {activeStats.degrees}°
-              </span>
-              <span className="pstat">
-                <i className="icon fi fi-rr-dashboard" />
-                {activeStats.intensity}%
               </span>
             </span>
           )}

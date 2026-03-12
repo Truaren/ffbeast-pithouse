@@ -1,5 +1,11 @@
-// Import global colors
+// Import global variables & mixins
+@use "./themes" as *;
 @use "./colors" as *;
+@import "./mixins";
+@import "./buttons";
+@import "./sliders";
+@import "./toggles";
+@import "./components";
 
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-regular-rounded/css/uicons-regular-rounded.css");
 @import url("https://cdn-uicons.flaticon.com/3.0.0/uicons-thin-straight/css/uicons-thin-straight.css");
@@ -20,7 +26,10 @@ body {
   font-family: "Inter", sans-serif;
 }
 
-button, input, textarea, select {
+button,
+input,
+textarea,
+select {
   font-family: inherit;
 }
 

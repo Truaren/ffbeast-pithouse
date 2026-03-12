@@ -2,6 +2,7 @@ import "./style.scss";
 
 import { ArrowDown, ArrowUp, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 
@@ -37,11 +38,20 @@ const tabs: Tab[] = [
 ];
 
 export const Settings = () => {
-  const { preferences, setTheme, setAutoCheckUpdates, setSidebarConfig } =
-    useAppPreferencesStore();
+  const {
+    preferences,
+    setTheme,
+    setAutoCheckUpdates,
+    setSidebarConfig,
+    setIsPro,
+  } = useAppPreferencesStore();
   const { checkForUpdate, isChecking, latestVersion } = useUpdateStore();
+  const location = useLocation();
+  const locationState = location.state as { tab?: string } | null;
 
-  const [activeTab, setActiveTab] = useState<TabType>("preferences");
+  const [activeTab, setActiveTab] = useState<TabType>(
+    (locationState?.tab as TabType) ?? "preferences",
+  );
   const [minimizeToTray, setMinimizeToTray] = useState(false);
   const [startWithSystem, setStartWithSystem] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -141,11 +151,7 @@ export const Settings = () => {
         </div>
       </div>
 
-      <Divider
-        style={{
-          marginTop: "1rem",
-        }}
-      />
+      <Divider className="divider-margin" />
 
       <div className="desktop-settings">
         <h3>Desktop Settings</h3>
@@ -178,7 +184,7 @@ export const Settings = () => {
         </div>
       </div>
 
-      <div className="desktop-settings" style={{ marginTop: "1.5rem" }}>
+      <div className="desktop-settings subheader-margin">
         <h3>Updates</h3>
 
         <div className="setting-item">
@@ -212,15 +218,7 @@ export const Settings = () => {
         </Button>
         <Button
           variant={confirmReset ? "primary" : "secondary"}
-          style={
-            confirmReset
-              ? {
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  borderColor: "#ef4444",
-                }
-              : {}
-          }
+          className={confirmReset ? "reset-button-confirm" : ""}
           onClick={() => {
             if (confirmReset) {
               setTheme(DEFAULT_APP_PREFERENCES.theme);
@@ -281,56 +279,24 @@ export const Settings = () => {
           Reorder and toggle visibility of left menu navigation items.
         </p>
         <Divider />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            marginTop: "1rem",
-            maxWidth: "400px",
-          }}
-        >
+        <div className="sidebar-list">
           {currentConfig.map((item, idx) => {
             const route = ROUTES[item.id];
             if (!route) return null;
             return (
-              <div
-                key={item.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0.75rem 1rem",
-                  background: "var(--bg-secondary)",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                }}
-              >
+              <div key={item.id} className="sidebar-item">
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    opacity: item.visible ? 1 : 0.5,
-                  }}
+                  className="sidebar-item-info"
+                  style={{ opacity: item.visible ? 1 : 0.5 }}
                 >
-                  <i
-                    className={route.icon}
-                    style={{ fontSize: "1.2rem", color: "var(--accent)" }}
-                  />
+                  <i className={route.icon} />
                   <span style={{ fontWeight: 500 }}>{route.title}</span>
                 </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                  }}
-                >
+                <div className="sidebar-item-controls">
                   <div title={item.visible ? "Hide" : "Show"}>
                     <Button
                       variant="secondary"
-                      style={{ padding: "0.25rem 0.5rem" }}
+                      className="icon-button-small"
                       onClick={() => toggleVisibility(idx)}
                     >
                       {item.visible ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -338,7 +304,7 @@ export const Settings = () => {
                   </div>
                   <Button
                     variant="secondary"
-                    style={{ padding: "0.25rem 0.5rem" }}
+                    className="icon-button-small"
                     disabled={idx === 0}
                     onClick={() => moveItem(idx, -1)}
                   >
@@ -346,7 +312,7 @@ export const Settings = () => {
                   </Button>
                   <Button
                     variant="secondary"
-                    style={{ padding: "0.25rem 0.5rem" }}
+                    className="icon-button-small"
                     disabled={idx === currentConfig.length - 1}
                     onClick={() => moveItem(idx, 1)}
                   >
@@ -420,95 +386,41 @@ export const Settings = () => {
         Submit a bug report or feature request directly to the developer.
       </p>
       <Divider />
-      <form
-        onSubmit={handleFeedbackSubmit}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-          marginTop: "1rem",
-          maxWidth: "500px",
-        }}
-      >
+      <form onSubmit={handleFeedbackSubmit} className="feedback-form">
         <input
           type="hidden"
           name="_subject"
           value="New Bug Report / Feature Request!"
         />
 
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
-        >
-          <label
-            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
-          >
-            Who is writing (Name)
-          </label>
+        <div className="form-group">
+          <label>Who is writing (Name)</label>
           <input
             type="text"
             name="name"
-            style={{
-              padding: "0.75rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-              background: "var(--bg-secondary)",
-              color: "var(--text-primary)",
-            }}
             placeholder="e.g. truearena"
             required
           />
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
-        >
-          <label
-            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
-          >
-            Description of Bug or Request
-          </label>
+        <div className="form-group">
+          <label>Description of Bug or Request</label>
           <textarea
             name="message"
-            style={{
-              padding: "0.75rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-              background: "var(--bg-secondary)",
-              color: "var(--text-primary)",
-              minHeight: "120px",
-              resize: "vertical",
-            }}
             placeholder="Explain the issue or functionality you'd like to see..."
             required
           />
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}
-        >
-          <label
-            style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
-          >
-            Contact Email
-          </label>
+        <div className="form-group">
+          <label>Contact Email</label>
           <input
             type="email"
             name="email"
-            style={{
-              padding: "0.75rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-              background: "var(--bg-secondary)",
-              color: "var(--text-primary)",
-            }}
             placeholder="Email Address (Optional)"
           />
         </div>
-        <button
-          type="submit"
-          className="button_comp primary"
-          style={{ alignSelf: "flex-start", marginTop: "0.5rem" }}
-        >
+        <Button type="submit" variant="primary" className="submit-button">
           Submit Feedback
-        </button>
+        </Button>
       </form>
     </div>
   );
@@ -580,7 +492,6 @@ export const Settings = () => {
           WebApp – GitHub
         </Button>
         <Button
-          style={{ marginLeft: "0rem" }}
           variant="secondary"
           onClick={() => window.open("https://ffbeast.github.io/", "_blank")}
         >
@@ -594,7 +505,7 @@ export const Settings = () => {
     <div className="settings-content">
       <h2>Disclaimer & Legal</h2>
 
-      <Divider style={{ marginBottom: "1rem" }} />
+      <Divider className="divider-margin-bottom" />
 
       <div className="disclaimer-section">
         <h3>Important Notice</h3>
@@ -641,44 +552,53 @@ export const Settings = () => {
     const success = await api.sendFirmwareActivation(serialKey);
     if (success) {
       toast.success("Device activated successfully!");
+      setIsPro(true);
       setSerialKey("");
     } else {
       toast.error("Activation failed. Please check the key and try again.");
     }
   };
-
   const renderLicenseContent = () => (
     <div className="settings-content">
-      <h2>License & Activation</h2>
+      <h2>License &amp; Activation</h2>
       <p className="settings-description">
         Activate your device with a serial key to unlock PRO features.
       </p>
       <Divider />
-      <div
-        className="settings"
-        style={{
-          marginTop: "1rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.75rem",
-          maxWidth: "420px",
-        }}
-      >
+
+      {preferences.isPro ? (
+        <div className="pro_thank_you">
+          <div className="pro_thank_you_icon">
+            <i className="fi fi-sr-star" />
+          </div>
+          <div>
+            <h3>Thank you for your support! 🚀</h3>
+            <p>Your PRO license is active. Enjoy all features!</p>
+          </div>
+          <div className="pro_badge_large">PRO</div>
+        </div>
+      ) : null}
+
+      <div className="license-activation-container">
         <InputBox
           label="Device ID"
           value={deviceId ?? "Device not connected"}
           placeholder="00000000-00000000-00000000"
           readonly
         />
-        <InputBox
-          label="Serial Key"
-          placeholder="00000000-00000000-00000000"
-          value={serialKey}
-          onValueChange={(value) => setSerialKey(formatSerialKey(value))}
-        />
-        <Button variant="primary" onClick={() => handleActivate()}>
-          Activate
-        </Button>
+        {!preferences.isPro && (
+          <>
+            <InputBox
+              label="Serial Key"
+              placeholder="00000000-00000000-00000000"
+              value={serialKey}
+              onValueChange={(value) => setSerialKey(formatSerialKey(value))}
+            />
+            <Button variant="primary" onClick={() => handleActivate()}>
+              Activate
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
