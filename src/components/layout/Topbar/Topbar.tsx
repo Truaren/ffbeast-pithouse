@@ -9,6 +9,7 @@ import { DonateModal } from "@/components/ui/DonateModal/DonateModal";
 import { ProfilePanel } from "@/components/ui/ProfilePanel/ProfilePanel";
 import {
   useAppPreferencesStore,
+  useDeviceSettingsStore, // Added
   useProfileStore,
   useWheelStore,
 } from "@/stores";
@@ -71,6 +72,20 @@ export const Topbar = () => {
   const handleBadgeClick = () => {
     if (!isPro) {
       void navigate("/settings", { state: { tab: "license" } });
+    }
+  };
+
+  const handleSaveToProfile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!activeProfile) return;
+
+    try {
+      const settings = useDeviceSettingsStore.getState().settings;
+      const preferences = useAppPreferencesStore.getState().preferences;
+      useProfileStore.getState().updateActiveProfile(settings, preferences);
+      toast.success(`Profile "${activeProfile.name}" saved!`);
+    } catch (err) {
+      toast.error((err as Error).message);
     }
   };
 
@@ -161,6 +176,18 @@ export const Topbar = () => {
             className={`icon fi fi-rr-angle-${showProfiles ? "up" : "down"} chevron`}
           />
         </button>
+
+        {activeProfile && (
+          <button
+            className={`profile_save_btn ${isDirty ? "dirty" : ""}`}
+            onClick={handleSaveToProfile}
+            title={
+              isDirty ? "Save changes to profile" : "Profile is up to date"
+            }
+          >
+            <i className="fi fi-sr-disk" />
+          </button>
+        )}
 
         {showProfiles && (
           <ProfilePanel onClose={() => setShowProfiles(false)} />

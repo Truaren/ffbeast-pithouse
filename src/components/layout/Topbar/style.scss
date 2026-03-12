@@ -218,6 +218,74 @@
         animation: pulse 1.5s infinite;
       }
     }
+
+    .profile_save_btn {
+      width: 2.4rem;
+      height: 2.4rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+      padding: 0;
+
+      i {
+        font-size: 1rem;
+        transition: transform 0.2s;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--text-secondary);
+        color: var(--text-primary);
+        transform: scale(1.05);
+      }
+
+      &.dirty {
+        background: rgba(228, 96, 8, 0.15);
+        border-color: rgba(228, 96, 8, 0.5);
+        color: var(--accent);
+        box-shadow: 0 0 12px rgba(228, 96, 8, 0.15);
+
+        i {
+          animation: save-pulse 2s infinite ease-in-out;
+        }
+
+        &:hover {
+          background: var(--accent);
+          color: white;
+          border-color: var(--accent);
+          box-shadow: 0 0 15px rgba(228, 96, 8, 0.4);
+
+          i {
+            animation: none;
+            transform: scale(1.1);
+          }
+        }
+      }
+
+      &:active {
+        transform: scale(0.92);
+      }
+    }
+  }
+
+  @keyframes save-pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
   .device_actions {

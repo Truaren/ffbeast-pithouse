@@ -163,7 +163,7 @@ export const ProfilePanel = ({ onClose }: ProfilePanelProps) => {
         PRO_HW_KEYS.forEach((key) => {
           if (profileDataToPublish.deviceSettings?.hardware) {
             delete (
-              profileDataToPublish.deviceSettings.hardware as Record<
+              profileDataToPublish.deviceSettings.hardware as unknown as Record<
                 string,
                 unknown
               >
@@ -173,7 +173,7 @@ export const ProfilePanel = ({ onClose }: ProfilePanelProps) => {
         PRO_FX_KEYS.forEach((key) => {
           if (profileDataToPublish.deviceSettings?.effects) {
             delete (
-              profileDataToPublish.deviceSettings.effects as Record<
+              profileDataToPublish.deviceSettings.effects as unknown as Record<
                 string,
                 unknown
               >
@@ -278,10 +278,19 @@ export const ProfilePanel = ({ onClose }: ProfilePanelProps) => {
 
       // 2. If user is NOT PRO, strip PRO settings from preset (or reset to current/defaults)
       if (!isUserPro) {
-        const hw = mergedSettings.hardware as Record<string, unknown>;
-        const fx = mergedSettings.effects as Record<string, unknown>;
-        const curHw = currentSettings.hardware as Record<string, unknown>;
-        const curFx = currentSettings.effects as Record<string, unknown>;
+        const hw = mergedSettings.hardware as unknown as Record<
+          string,
+          unknown
+        >;
+        const fx = mergedSettings.effects as unknown as Record<string, unknown>;
+        const curHw = currentSettings.hardware as unknown as Record<
+          string,
+          unknown
+        >;
+        const curFx = currentSettings.effects as unknown as Record<
+          string,
+          unknown
+        >;
 
         PRO_HW_KEYS.forEach((key) => {
           if (hw && key in hw) {
