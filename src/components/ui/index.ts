@@ -4,6 +4,8 @@ export * from "./Divider";
 export * from "./DonateModal/DonateModal";
 export * from "./InfoPanel";
 export * from "./InputBox";
+export * from "./MarkdownModal";
 export * from "./ProfilePanel";
 export * from "./Slider";
 export * from "./ToggleSwitch";
+export * from "./UpdateModal/UpdateModal";

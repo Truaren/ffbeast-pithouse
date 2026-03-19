@@ -96,7 +96,7 @@ export const Topbar = () => {
           <h1>FFBeast Pit House</h1>
         </div>
         <div className="info">
-          <span className="version">v3.0.0</span>
+          <span className="version">v4.1.0</span>
           <button
             className={`license_badge ${isPro ? "pro" : "free"}`}
             onClick={handleBadgeClick}

@@ -362,7 +362,6 @@ const DirectControlTest = () => {
             infoPanelProps={{
               description:
                 "Centering force — positive = center, negative = anti-center.",
-              impact: "",
             }}
           />
           <Slider
@@ -375,7 +374,6 @@ const DirectControlTest = () => {
             infoPanelProps={{
               description:
                 "Constant push in one direction. -100 = full left, +100 = full right.",
-              impact: "",
             }}
           />
           <Slider
@@ -388,7 +386,6 @@ const DirectControlTest = () => {
             infoPanelProps={{
               description:
                 "Periodic oscillation force. Sent as a raw value to the periodic channel.",
-              impact: "",
             }}
           />
           <Slider
@@ -399,7 +396,6 @@ const DirectControlTest = () => {
             infoPanelProps={{
               description:
                 "Reduces all DirectX forces by this %. 100 = completely mutes game FFB.",
-              impact: "",
             }}
           />
         </div>

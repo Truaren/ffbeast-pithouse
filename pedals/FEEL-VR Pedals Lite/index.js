@@ -10,7 +10,7 @@
 const DEVICE_INFO = {
   vendorId: 0x0483, // 1155
   productId: 0xa2ea, // 41706
-  name: "FEEL-VR Pedals",
+  name: "FEEL-VR Pedals Lite",
 };
 
 /**

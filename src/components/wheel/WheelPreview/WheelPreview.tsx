@@ -1,6 +1,6 @@
 import "./styles.scss";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
@@ -32,12 +32,13 @@ export const WheelPreview = () => {
       activeProfile: state.activeProfile,
     })),
   );
-  const { wheelImageUrl, setWheelImage, resetWheelImage } =
+  const { wheelImageUrl, setWheelImage, resetWheelImage, centerWheelKey } =
     useAppPreferencesStore(
       useShallow((state) => ({
         wheelImageUrl: state.preferences.wheelImageUrl,
         setWheelImage: state.setWheelImage,
         resetWheelImage: state.resetWheelImage,
+        centerWheelKey: state.preferences.centerWheelKey,
       })),
     );
   const { api, positionDegrees } = useWheelStore(
@@ -50,6 +51,21 @@ export const WheelPreview = () => {
     (state) => state.settings.effects.motionRange,
   );
   const { switchProfile } = useProfileSwitcher();
+
+  // Global hotkey: recenter wheel when bound key is pressed
+  useEffect(() => {
+    if (!centerWheelKey) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName.toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+      if (e.key === centerWheelKey) {
+        void api.resetWheelCenter();
+        toast.success("Wheel recentered!");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [centerWheelKey, api]);
 
   const activeBarIndex = useMemo(() => {
     const halfRange = motionRange / 2;

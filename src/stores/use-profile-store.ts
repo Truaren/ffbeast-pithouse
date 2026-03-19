@@ -247,20 +247,11 @@ export const useProfileStore = create<ProfileStore>()(
 
 // --- Disk Persistence Sync ---
 
-interface ElectronWindow extends Window {
-  require: (module: "electron") => {
-    ipcRenderer: {
-      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-    };
-  };
-}
-
-const win = window as unknown as ElectronWindow;
-if (typeof window !== "undefined" && win.require) {
-  const { ipcRenderer } = win.require("electron");
+if (typeof window !== "undefined" && window.electron) {
+  const electron = window.electron;
 
   // Load from disk on startup
-  void ipcRenderer.invoke("load-profiles").then((res) => {
+  void electron.invoke("load-profiles").then((res) => {
     const diskProfiles = res as Profile[] | null;
     if (diskProfiles && Array.isArray(diskProfiles)) {
       console.log("Profiles loaded from disk, syncing store...");
@@ -272,7 +263,7 @@ if (typeof window !== "undefined" && win.require) {
   useProfileStore.subscribe(
     (state) => state.profiles,
     (profiles) => {
-      ipcRenderer.invoke("save-profiles", profiles).catch((err: Error) => {
+      electron.invoke("save-profiles", profiles).catch((err: unknown) => {
         console.error("Failed to sync profiles to disk:", err);
       });
     },

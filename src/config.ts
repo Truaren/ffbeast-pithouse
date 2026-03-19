@@ -24,6 +24,14 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = {
   autoCheckUpdates: true,
   autoProfiles: [],
   isPro: false,
+  performance: {
+    disableHardwareAcceleration: false,
+    reduceInputPolling: false,
+    safeMode: false,
+    disableDebugLogging: false,
+    forceAsyncFileOps: false,
+    enableDeviceReconnect: false,
+  },
 };
 
 export const PROFILE_EXPORT_VERSION = 1;

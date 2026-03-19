@@ -14,6 +14,88 @@ import {
   useWheelStore,
 } from "@/stores";
 
+const RecenterBinding = () => {
+  const { centerWheelKey, setCenterWheelKey } = useAppPreferencesStore(
+    useShallow((state) => ({
+      centerWheelKey: state.preferences.centerWheelKey,
+      setCenterWheelKey: state.setCenterWheelKey,
+    })),
+  );
+  const [isBinding, setIsBinding] = useState(false);
+
+  useEffect(() => {
+    if (!isBinding) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const keys = [];
+      if (e.metaKey) keys.push("Super");
+      if (e.ctrlKey) keys.push("CommandOrControl");
+      if (e.altKey) keys.push("Alt");
+      if (e.shiftKey) keys.push("Shift");
+
+      const isModifier = ["Control", "Alt", "Shift", "Meta"].includes(e.key);
+      if (isModifier) return; // wait for actual key
+
+      let mainKey = e.code;
+      if (mainKey.startsWith("Key")) mainKey = mainKey.replace("Key", "");
+      else if (mainKey.startsWith("Digit"))
+        mainKey = mainKey.replace("Digit", "");
+      else if (mainKey.startsWith("Numpad"))
+        mainKey = mainKey.replace("Numpad", "num");
+      else if (mainKey === "Space") mainKey = "Space";
+      else if (mainKey === "Escape") mainKey = "Escape";
+      else if (mainKey === "Enter") mainKey = "Enter";
+      else mainKey = e.key.toUpperCase(); // Fallback to character
+
+      keys.push(mainKey);
+      const accelerator = keys.join("+");
+
+      setCenterWheelKey(accelerator);
+      setIsBinding(false);
+      toast.success(`Recenter key bound to ${accelerator}`);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isBinding, setCenterWheelKey]);
+
+  return (
+    <button
+      className="recenter_bind_btn"
+      style={{
+        marginLeft: "auto",
+        fontSize: "0.8rem",
+        padding: "0.2rem 0.5rem",
+        borderRadius: "4px",
+        background: "var(--bg-card)",
+        color: "var(--text-secondary)",
+        border: "1px solid var(--border)",
+        cursor: "pointer",
+      }}
+      onClick={(e) => {
+        // Unbind on right click or double click? No, let's just allow binding.
+        // Actually, let's allow Shift+Click or something to unbind.
+        if (e.shiftKey) {
+          setCenterWheelKey(null);
+          toast.info("Recenter key unbound.");
+        } else {
+          setIsBinding(true);
+        }
+      }}
+      title="Click to bind. Shift+Click to unbind."
+    >
+      {isBinding
+        ? "Press any key..."
+        : centerWheelKey
+          ? `Bind: ${centerWheelKey}`
+          : "Bind Recenter"}
+    </button>
+  );
+};
+
 const LinearSteeringGauge = ({
   currentAngle,
   maxAngle,
@@ -449,7 +531,7 @@ export const Dashboard = () => {
             >
               Center
             </Button>
-            <i className="icon fi fi-rr-info tooltip_icon"></i>
+            <RecenterBinding />
           </div>
 
           <div className="angle_slider_row">

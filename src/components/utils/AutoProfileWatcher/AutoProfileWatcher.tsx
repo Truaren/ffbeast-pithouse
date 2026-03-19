@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import { useElectron } from "@/hooks/use-electron";
+import { IPC } from "@/ipc-channels";
 import { useAppPreferencesStore, useProfileStore } from "@/stores";
 
 export const AutoProfileWatcher = () => {
@@ -12,37 +14,26 @@ export const AutoProfileWatcher = () => {
       setActiveProfile: s.setActiveProfile,
     })),
   );
-
+  const electron = useElectron();
   const lastAppliedExeRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Only run in Electron environment
-    const win = window as Window & {
-      require?: (module: string) => {
-        ipcRenderer: {
-          invoke: (channel: string, ...args: unknown[]) => Promise<string[]>;
-        };
-      };
-    };
-    if (!win.require) return;
-    const { ipcRenderer } = win.require("electron");
+    if (!electron) return;
 
     const checkProcesses = async () => {
-      const autoProfiles = preferences.autoProfiles || [];
+      const autoProfiles = preferences.autoProfiles ?? [];
       if (autoProfiles.length === 0) return;
 
       try {
-        const runningProcesses: string[] = await ipcRenderer.invoke(
-          "get-running-processes",
-        );
+        const runningProcesses = (await electron.invoke(
+          IPC.GET_RUNNING_PROCESSES,
+        )) as string[];
 
-        // Find the FIRST configured exe that is currently running
         const matchedMapping = autoProfiles.find((mapping) =>
           runningProcesses.includes(mapping.exeName.toLowerCase()),
         );
 
         if (matchedMapping) {
-          // If we mapped this process and we aren't already actively enforcing it
           if (
             lastAppliedExeRef.current !== matchedMapping.exeName ||
             activeProfile?.id !== matchedMapping.profileId
@@ -63,9 +54,7 @@ export const AutoProfileWatcher = () => {
             }
           }
         } else {
-          // No configured apps are running. Reset the tracking ref so it can trigger again later.
-          // Note: We intentionally DO NOT revert to a "default" profile automatically here
-          // as that ruins the manual workflow if a user closes a game.
+          // No configured apps are running. Reset tracking ref.
           lastAppliedExeRef.current = null;
         }
       } catch (err) {
@@ -75,7 +64,13 @@ export const AutoProfileWatcher = () => {
 
     const interval = setInterval(() => void checkProcesses(), 5000);
     return () => clearInterval(interval);
-  }, [preferences.autoProfiles, profiles, activeProfile, setActiveProfile]);
+  }, [
+    electron,
+    preferences.autoProfiles,
+    profiles,
+    activeProfile,
+    setActiveProfile,
+  ]);
 
-  return null; // Invisible logical component
+  return null;
 };

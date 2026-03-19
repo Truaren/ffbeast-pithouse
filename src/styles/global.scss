@@ -23,6 +23,7 @@
 
 body {
   background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: "Inter", sans-serif;
 }
 
@@ -116,5 +117,21 @@ select {
     color: var(--text-primary) !important;
     padding: 1.2rem !important;
     border-radius: 0.5rem !important;
+  }
+}
+
+// --- Safe Mode ---
+.safe-mode {
+  * {
+    animation: none !important;
+    transition: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  // Preserve some critical transitions if absolutely necessary, but generally disable all
+  .animated-gradient-fill {
+    background: var(--accent) !important;
   }
 }

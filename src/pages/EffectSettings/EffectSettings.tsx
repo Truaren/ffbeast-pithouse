@@ -76,6 +76,20 @@ export const EffectSettings = () => {
               animationType: "dampen",
             }}
           />
+          {/* <Slider
+            label="Dynamic Dampening (%)"
+            value={(effects as any).dynamicDampeningStrength}
+            onValueCommit={(v) =>
+              setSetting((SettingField as any).DynamicDampeningStrength, v)
+            }
+            infoPanelProps={{
+              description:
+                "Dampens the wheel based on rotational speed to prevent oscillation and unrealistic spinning.",
+              impact:
+                "Crucial for high power bases to prevent self-oscillation. Starts taking effect only when moving fast.",
+              animationType: "dampen",
+            }}
+          /> */}
           <Slider
             isPro
             label="Soft Stop Range (°)"

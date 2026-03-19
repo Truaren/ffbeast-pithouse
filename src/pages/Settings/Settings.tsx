@@ -8,6 +8,7 @@ import { useShallow } from "zustand/shallow";
 
 import { Button, Divider, InputBox, ToggleSwitch } from "@/components/ui";
 import { DEFAULT_APP_PREFERENCES } from "@/config";
+import { useElectron } from "@/hooks/use-electron";
 import { ROUTES } from "@/routes";
 import { useAppPreferencesStore, useWheelStore } from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
@@ -17,6 +18,7 @@ import { formatSerialKey } from "@/utils";
 type TabType =
   | "preferences"
   | "sidebar"
+  | "performance"
   | "feedback"
   | "about"
   | "disclaimer"
@@ -31,6 +33,7 @@ interface Tab {
 const tabs: Tab[] = [
   { id: "preferences", label: "Preferences" },
   { id: "sidebar", label: "Sidebar Menu" },
+  { id: "performance", label: "Performance" },
   { id: "feedback", label: "Feedback" },
   { id: "about", label: "About" },
   { id: "disclaimer", label: "Disclaimer" },
@@ -44,7 +47,10 @@ export const Settings = () => {
     setAutoCheckUpdates,
     setSidebarConfig,
     setIsPro,
+    setCenterWheelKey,
+    setPerformanceSetting,
   } = useAppPreferencesStore();
+  const electron = useElectron();
   const { checkForUpdate, isChecking, latestVersion } = useUpdateStore();
   const location = useLocation();
   const locationState = location.state as { tab?: string } | null;
@@ -56,6 +62,7 @@ export const Settings = () => {
   const [startWithSystem, setStartWithSystem] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [serialKey, setSerialKey] = useState("");
+  const [isListeningForKey, setIsListeningForKey] = useState(false);
 
   const { api, isConnected, deviceId } = useWheelStore(
     useShallow((state) => ({
@@ -66,57 +73,69 @@ export const Settings = () => {
   );
 
   useEffect(() => {
-    // Check if we are in Electron
-    const win = window as unknown as {
-      require?: (module: string) => {
-        ipcRenderer: {
-          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-        };
+    if (!electron) return;
+    void electron.invoke("get-app-settings").then((settings: unknown) => {
+      const s = settings as {
+        minimizeToTray: boolean;
+        startWithSystem: boolean;
       };
-    };
-    if (win.require) {
-      const { ipcRenderer } = win.require("electron");
-      void ipcRenderer.invoke("get-app-settings").then((settings: unknown) => {
-        const s = settings as {
-          minimizeToTray: boolean;
-          startWithSystem: boolean;
-        };
-        setMinimizeToTray(s.minimizeToTray);
-        setStartWithSystem(s.startWithSystem);
-      });
-    }
-  }, []);
+      setMinimizeToTray(s.minimizeToTray);
+      setStartWithSystem(s.startWithSystem);
+    });
+  }, [electron]);
 
   const handleTrayToggle = (val: boolean) => {
     setMinimizeToTray(val);
-    const win = window as unknown as {
-      require?: (module: string) => {
-        ipcRenderer: {
-          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-        };
-      };
-    };
-    if (win.require) {
-      void win
-        .require("electron")
-        .ipcRenderer.invoke("set-minimize-to-tray", val);
+    if (electron) {
+      void electron.invoke("set-minimize-to-tray", val);
     }
   };
 
   const handleAutostartToggle = (val: boolean) => {
     setStartWithSystem(val);
-    const win = window as unknown as {
-      require?: (module: string) => {
-        ipcRenderer: {
-          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-        };
-      };
-    };
-    if (win.require) {
-      void win
-        .require("electron")
-        .ipcRenderer.invoke("set-start-with-system", val);
+    if (electron) {
+      void electron.invoke("set-start-with-system", val);
     }
+  };
+
+  const handleStartKeyListen = () => {
+    setIsListeningForKey(true);
+    const onKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+
+      if (["Control", "Shift", "Alt", "Meta", "Escape"].includes(e.key)) {
+        if (e.key === "Escape") {
+          setIsListeningForKey(false);
+          window.removeEventListener("keydown", onKey, true);
+        }
+        return;
+      }
+
+      const parts = [];
+      if (e.ctrlKey || e.metaKey) parts.push("CommandOrControl");
+      if (e.altKey) parts.push("Alt");
+      if (e.shiftKey) parts.push("Shift");
+
+      let mainKey = e.key;
+      const keyMap: Record<string, string> = {
+        " ": "Space",
+        "+": "Plus",
+        Enter: "Return",
+        ArrowUp: "Up",
+        ArrowDown: "Down",
+        ArrowLeft: "Left",
+        ArrowRight: "Right",
+      };
+      mainKey = keyMap[mainKey] || mainKey;
+      if (mainKey.length === 1) mainKey = mainKey.toUpperCase();
+
+      parts.push(mainKey);
+      setCenterWheelKey(parts.join("+"));
+
+      setIsListeningForKey(false);
+      window.removeEventListener("keydown", onKey, true);
+    };
+    window.addEventListener("keydown", onKey, true);
   };
 
   const renderThemeContent = () => (
@@ -208,6 +227,45 @@ export const Settings = () => {
               Current: v{__APP_VERSION__}{" "}
               {latestVersion ? `| Latest: ${latestVersion}` : ""}
             </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="desktop-settings subheader-margin">
+        <h3>Keybinds</h3>
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Recenter Wheel Hotkey</span>
+            <span className="setting-description">
+              Press a key to recenter / zero the wheel position at any time
+            </span>
+          </div>
+          <div className="keybind-controls">
+            {preferences.centerWheelKey ? (
+              <>
+                <span className="keybind-badge">
+                  {preferences.centerWheelKey}
+                </span>
+                <Button
+                  variant="secondary"
+                  className="keybind-clear-btn"
+                  onClick={() => setCenterWheelKey(null)}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : null}
+            <Button
+              variant={isListeningForKey ? "primary" : "secondary"}
+              className={`keybind-listen-btn${isListeningForKey ? " listening" : ""}`}
+              onClick={handleStartKeyListen}
+            >
+              {isListeningForKey
+                ? "Press any key\u2026"
+                : preferences.centerWheelKey
+                  ? "Change"
+                  : "Set Key"}
+            </Button>
           </div>
         </div>
       </div>
@@ -603,12 +661,130 @@ export const Settings = () => {
     </div>
   );
 
+  const renderPerformanceContent = () => (
+    <div className="settings-content">
+      <h2>Performance &amp; Developer</h2>
+      <p className="settings-description">
+        Advanced options for adjusting application performance, hardware
+        polling, and troubleshooting.
+      </p>
+
+      <Divider />
+
+      <div className="desktop-settings">
+        <h3>Core Engine</h3>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Disable Hardware Acceleration</span>
+            <span className="setting-description">
+              Turns off GPU rendering (Requires restart). Useful if the UI feels
+              sluggish or flickers on older PCs.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={
+              preferences.performance?.disableHardwareAcceleration ?? false
+            }
+            onToggle={(val) =>
+              setPerformanceSetting("disableHardwareAcceleration", val)
+            }
+          />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Reduce Input Polling</span>
+            <span className="setting-description">
+              Limits device telemetry refresh rate to ~60Hz to save CPU cycles.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.performance?.reduceInputPolling ?? false}
+            onToggle={(val) => setPerformanceSetting("reduceInputPolling", val)}
+          />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Save Configs Asynchronously</span>
+            <span className="setting-description">
+              Prevents the UI from halting when writing profile data to disk.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.performance?.forceAsyncFileOps ?? false}
+            onToggle={(val) => setPerformanceSetting("forceAsyncFileOps", val)}
+          />
+        </div>
+      </div>
+
+      <div className="desktop-settings subheader-margin">
+        <h3>Troubleshooting</h3>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Continuous Device Reconnect</span>
+            <span className="setting-description">
+              Automatically tries to reconnect to disconnected devices in the
+              background.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.performance?.enableDeviceReconnect ?? false}
+            onToggle={(val) =>
+              setPerformanceSetting("enableDeviceReconnect", val)
+            }
+          />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Disable Debug Logging</span>
+            <span className="setting-description">
+              Stops spamming console logs which may slightly improve performance
+              over time.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.performance?.disableDebugLogging ?? false}
+            onToggle={(val) =>
+              setPerformanceSetting("disableDebugLogging", val)
+            }
+          />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-info">
+            <span className="setting-label">Safe Mode</span>
+            <span className="setting-description">
+              Disables experimental WebHID polling plugins and defaults to
+              bare-minimum commands.
+            </span>
+          </div>
+          <ToggleSwitch
+            label=""
+            checked={preferences.performance?.safeMode ?? false}
+            onToggle={(val) => setPerformanceSetting("safeMode", val)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case "preferences":
         return renderThemeContent();
       case "sidebar":
         return renderSidebarContent();
+      case "performance":
+        return renderPerformanceContent();
       case "feedback":
         return renderFeedbackContent();
       case "about":

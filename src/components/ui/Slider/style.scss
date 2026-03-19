@@ -14,10 +14,13 @@
     top: 2.5rem; // appears just below the label+controls row
     right: 0;
     z-index: 500;
-    width: 260px;
+    width: 320px;
+    max-height: 420px;
+    overflow-y: auto;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
     margin-top: 0;
     animation: slideDown 0.15s ease;
+    border-radius: 0.75rem;
   }
 
   &.disabled {

@@ -59,6 +59,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #{$dark-text-primary};
   --text-primary-rgb: 255, 255, 255;
   --text-secondary: #{$dark-text-secondary};
+  --card-bg: #{$dark-button};
 
   /* Pedals */
   --pedal-grid: rgba(148, 163, 184, 0.09);
@@ -130,6 +131,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #ffffff;
   --text-primary-rgb: 255, 255, 255;
   --text-secondary: #999999;
+  --card-bg: #0c0c0c;
 
   /* Pedals */
   --pedal-grid: rgba(255, 255, 255, 0.05);
@@ -159,6 +161,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #{$light-text-primary};
   --text-primary-rgb: 17, 17, 17;
   --text-secondary: #{$light-text-secondary};
+  --card-bg: #{$light-bg-primary};
 
   /* Pedals */
   --pedal-grid: rgba(100, 116, 139, 0.15);
@@ -182,6 +185,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #1f2937;
   --text-primary-rgb: 31, 41, 55;
   --text-secondary: #6b7280;
+  --card-bg: #fdf6ee;
 
   --pedal-grid: rgba(77, 124, 111, 0.1);
   --pedal-chart-bg: rgba(255, 255, 255, 0.5);
@@ -204,6 +208,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #1a1a1a;
   --text-primary-rgb: 26, 26, 26;
   --text-secondary: #777777;
+  --card-bg: #ffffff;
 }
 
 [data-theme="light-muted"] {
@@ -219,6 +224,7 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #262626;
   --text-primary-rgb: 38, 38, 38;
   --text-secondary: #737373;
+  --card-bg: #f5f5f5;
 }
 
 [data-theme="light-sage"] {
@@ -234,4 +240,5 @@ $accent-sage-rgb: 77, 124, 111;
   --text-primary: #1f2937;
   --text-primary-rgb: 31, 41, 55;
   --text-secondary: #6b7280;
+  --card-bg: #f6faf8;
 }

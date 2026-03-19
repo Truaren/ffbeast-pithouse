@@ -4,12 +4,18 @@ import { MainLayout, Sidebar, Topbar } from "@components/layout";
 import { AutoProfileWatcher, ScrollToTop } from "@components/utils";
 import { ConnectionPage, UnsupportedBrowser } from "@pages";
 import { WheelApi } from "@shubham0x13/ffbeast-wheel-webhid-api";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { HashRouter } from "react-router-dom";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 
 import { UpdateModal } from "@/components/ui/UpdateModal/UpdateModal";
-import { useAppPreferencesStore, useProfileStore } from "@/stores";
+import { useElectron } from "@/hooks/use-electron";
+import { IPC, IPC_LISTEN } from "@/ipc-channels";
+import {
+  useAppPreferencesStore,
+  useProfileStore,
+  useWheelStore,
+} from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
 
 import { TitleBarProvider } from "./components/layout/TitleBarContext";
@@ -19,6 +25,47 @@ const App = () => {
   const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } =
     useUpdateStore();
   const { preferences } = useAppPreferencesStore();
+  const electron = useElectron();
+
+  // Handle Safe Mode CSS class
+  useEffect(() => {
+    if (preferences.performance?.safeMode) {
+      document.body.classList.add("safe-mode");
+    } else {
+      document.body.classList.remove("safe-mode");
+    }
+  }, [preferences.performance?.safeMode]);
+
+  // Handle global recenter shortcut registration and invocation
+  useEffect(() => {
+    if (!electron) return;
+
+    const handleRecenter = () => {
+      const api = useWheelStore.getState().api;
+      if (api) {
+        api.resetWheelCenter().catch(console.error);
+        toast.info("Wheel centered via shortcut.");
+      }
+    };
+
+    const unsubscribe = electron.on(IPC_LISTEN.RECENTER_WHEEL, handleRecenter);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [electron]);
+
+  useEffect(() => {
+    if (!electron) return;
+    electron
+      .invoke(IPC.SET_RECENTER_SHORTCUT, preferences.centerWheelKey ?? null)
+      .then((res) => {
+        const result = res as { success: boolean; error?: string };
+        if (!result.success && result.error) {
+          console.error("Failed to register shortcut:", result.error);
+        }
+      })
+      .catch(console.error);
+  }, [electron, preferences.centerWheelKey]);
 
   // Check for updates on startup
   useEffect(() => {
@@ -37,7 +84,6 @@ const App = () => {
 
   // Auto-load default profile on startup
   useEffect(() => {
-    // Wait until profiles are loaded (from disk/storage) and no profile is active yet
     if (profiles.length > 0 && !activeProfile) {
       const defaultProfile = profiles.find((p) => p.isDefault) ?? profiles[0];
       if (defaultProfile) {
@@ -49,6 +95,10 @@ const App = () => {
       }
     }
   }, [profiles, activeProfile, setActiveProfile]);
+
+  const [isBypassed, setIsBypassed] = useState(false);
+
+  const { isConnected } = useWheelStore();
 
   if (!WheelApi.isSupported()) {
     return <UnsupportedBrowser />;
@@ -73,7 +123,9 @@ const App = () => {
         }}
       />
 
-      <ConnectionPage />
+      {!isConnected && !isBypassed && (
+        <ConnectionPage onSkip={() => setIsBypassed(true)} />
+      )}
 
       <HashRouter>
         <TitleBarProvider>

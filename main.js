@@ -7,6 +7,7 @@ import {
   nativeImage,
   dialog,
   shell,
+  globalShortcut,
 } from "electron";
 import path from "path";
 import fs from "fs";
@@ -16,6 +17,15 @@ import { createRequire } from "module";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// --- Logging Wrapper ---
+const originalLog = console.log;
+console.log = (...args) => {
+  const prefs = loadPreferencesRawSync();
+  if (prefs?.performance?.disableDebugLogging) return;
+  originalLog.apply(console, args);
+};
+// Errors are never blocked
 
 let mainWindow = null;
 let tray = null;
@@ -31,6 +41,33 @@ let appSettings = {
   startWithSystem: false,
 };
 
+// --- Performance / Compatibility Startup ---
+try {
+  if (fs.existsSync(preferencesPath)) {
+    const data = fs.readFileSync(preferencesPath, "utf8");
+    const prefs = JSON.parse(data);
+    if (prefs.performance?.disableHardwareAcceleration) {
+      app.disableHardwareAcceleration();
+      console.log("[Main] Hardware acceleration disabled via preferences.");
+    }
+  }
+} catch (err) {
+  // Errors during early startup should be logged but not crash the app
+  console.error(
+    "[Main] Failed to read early preferences for HW Acceleration:",
+    err,
+  );
+}
+
+// Global Exception Handlers
+process.on("uncaughtException", (err) => {
+  console.error("[Main] Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[Main] Unhandled Rejection at:", promise, "reason:", reason);
+});
+
 function loadSettings() {
   try {
     if (fs.existsSync(settingsPath)) {
@@ -43,10 +80,17 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  try {
-    fs.writeFileSync(settingsPath, JSON.stringify(appSettings, null, 2));
-  } catch (err) {
-    console.error("Failed to save settings:", err);
+  const prefs = loadPreferencesRawSync();
+  if (prefs?.performance?.forceAsyncFileOps) {
+    fs.promises
+      .writeFile(settingsPath, JSON.stringify(appSettings, null, 2))
+      .catch((err) => console.error("[Main] Async save settings failed:", err));
+  } else {
+    try {
+      fs.writeFileSync(settingsPath, JSON.stringify(appSettings, null, 2));
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
   }
 }
 
@@ -114,8 +158,9 @@ function createWindow() {
     maximizable: false,
     icon: getAppIcon(),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, "preload.cjs"),
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
@@ -172,6 +217,17 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
+  });
+
+  // Log crashes
+  mainWindow.webContents.on("render-process-gone", (event, details) => {
+    console.error(
+      `[Main] Render process gone. Reason: ${details.reason}, ExitCode: ${details.exitCode}`,
+    );
+  });
+
+  mainWindow.on("unresponsive", () => {
+    console.warn("[Main] Window became unresponsive.");
   });
 }
 
@@ -242,13 +298,27 @@ ipcMain.handle("set-start-with-system", (_event, value) => {
 });
 
 // IPC: profiles management
-ipcMain.handle("save-profiles", (_event, profiles) => {
-  try {
-    fs.writeFileSync(profilesPath, JSON.stringify(profiles, null, 2));
-    return { success: true };
-  } catch (err) {
-    console.error("Failed to save profiles:", err);
-    return { success: false, error: err.message };
+ipcMain.handle("save-profiles", async (_event, profiles) => {
+  const prefs = loadPreferencesRawSync();
+  if (prefs?.performance?.forceAsyncFileOps) {
+    try {
+      await fs.promises.writeFile(
+        profilesPath,
+        JSON.stringify(profiles, null, 2),
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save profiles (async):", err);
+      return { success: false, error: err.message };
+    }
+  } else {
+    try {
+      fs.writeFileSync(profilesPath, JSON.stringify(profiles, null, 2));
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save profiles:", err);
+      return { success: false, error: err.message };
+    }
   }
 });
 
@@ -265,13 +335,27 @@ ipcMain.handle("load-profiles", () => {
 });
 
 // IPC: app preferences management
-ipcMain.handle("save-preferences", (_event, preferences) => {
-  try {
-    fs.writeFileSync(preferencesPath, JSON.stringify(preferences, null, 2));
-    return { success: true };
-  } catch (err) {
-    console.error("Failed to save preferences:", err);
-    return { success: false, error: err.message };
+ipcMain.handle("save-preferences", async (_event, preferences) => {
+  const prefs = loadPreferencesRawSync();
+  if (prefs?.performance?.forceAsyncFileOps) {
+    try {
+      await fs.promises.writeFile(
+        preferencesPath,
+        JSON.stringify(preferences, null, 2),
+      );
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save preferences (async):", err);
+      return { success: false, error: err.message };
+    }
+  } else {
+    try {
+      fs.writeFileSync(preferencesPath, JSON.stringify(preferences, null, 2));
+      return { success: true };
+    } catch (err) {
+      console.error("Failed to save preferences:", err);
+      return { success: false, error: err.message };
+    }
   }
 });
 
@@ -349,13 +433,16 @@ let liveDataInterval = null;
 let reconnectInterval = null;
 let currentPedalConfig = null;
 
+let reconnectAttempts = 0;
+let isSafeState = false; // If true, stop all device operations
+
 let isDebugRecording = false;
 let debugRecordingData = [];
 let debugRecordingStartTime = 0;
 
 // Dynamic Pedal Plugin System
 let pedalPlugin = null; // Currently loaded pedals module
-const DEFAULT_PLUGIN_ID = "FEEL-VR Pedals"; // The folder name to load by default
+const DEFAULT_PLUGIN_ID = "FEEL-VR Pedals Lite"; // The folder name to load by default
 
 // We'll require the default plugin on startup if it exists
 // loadPluginById is hoisted so we can call it here, but let's push the call into a function or do it inline safely:
@@ -476,7 +563,7 @@ function openJoystickDevice(info) {
 }
 
 function tryConnectPedals() {
-  if (hidConnected || !HID) return;
+  if (hidConnected || !HID || isSafeState) return;
   const { config, joystick } = findHidDevices();
   if (!joystick) return;
 
@@ -485,6 +572,7 @@ function tryConnectPedals() {
 
   if (joystickDevice) {
     hidConnected = true;
+    reconnectAttempts = 0; // Reset backoff on success
     // Use plugin DEVICE_INFO.name if available, otherwise fall back to HID product name
     const name =
       pedalPlugin?.DEVICE_INFO?.name ??
@@ -580,6 +668,15 @@ function startLivePolling() {
         });
       }
 
+      // --- Throttling Logic ---
+      const prefs = loadPreferencesRawSync();
+      if (prefs?.performance?.reduceInputPolling) {
+        const now = Date.now();
+        if (!startLivePolling.lastEmit) startLivePolling.lastEmit = 0;
+        if (now - startLivePolling.lastEmit < 16) return; // Limit to ~60Hz
+        startLivePolling.lastEmit = now;
+      }
+
       sendToRenderer("pedals:liveData", {
         raw: rawData,
         throttle: throttleRaw,
@@ -588,8 +685,15 @@ function startLivePolling() {
         telemetry: telemetry,
       });
     } catch (e) {
+      console.error("[Pedals] Critical polling error:", e.message);
       joystickDevice = null;
       disconnectPedals();
+
+      // If error is critical (not just a disconnect), move to safe state
+      if (e.message.includes("could not read") || e.message.includes("fatal")) {
+        console.error("[Pedals] Moving to Safe State due to critical error.");
+        isSafeState = true;
+      }
     }
   }, 16); // ~60fps
 }
@@ -602,9 +706,42 @@ function stopLivePolling() {
 }
 
 function startReconnectLoop() {
-  reconnectInterval = setInterval(() => {
-    if (!hidConnected) tryConnectPedals();
-  }, 1500);
+  if (reconnectInterval) clearInterval(reconnectInterval);
+
+  const tick = () => {
+    if (isSafeState) return;
+
+    const prefs = loadPreferencesRawSync();
+    if (!hidConnected) {
+      if (prefs?.performance?.enableDeviceReconnect) {
+        reconnectAttempts++;
+        const backoff = Math.min(Math.pow(2, reconnectAttempts) * 500, 10000); // Max 10s
+        console.log(
+          `[Pedals] Attempting reconnect ${reconnectAttempts} (backoff: ${backoff}ms)...`,
+        );
+        tryConnectPedals();
+        setTimeout(tick, backoff);
+      } else {
+        tryConnectPedals();
+        setTimeout(tick, 1500); // Default 1.5s
+      }
+    } else {
+      setTimeout(tick, 1500);
+    }
+  };
+
+  tick();
+}
+
+function loadPreferencesRawSync() {
+  try {
+    if (fs.existsSync(preferencesPath)) {
+      return JSON.parse(fs.readFileSync(preferencesPath, "utf-8"));
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
 }
 
 // ─── Pedals IPC handlers ─────────────────────────────────────────────────────
@@ -673,6 +810,21 @@ ipcMain.handle("pedals:getDefaults", () => {
   return pedalPlugin ? pedalPlugin.DEFAULT_RAW_LIMITS : null;
 });
 
+ipcMain.handle("pedals:getReadme", () => {
+  try {
+    const readmePath = path.join(getPedalsDir(), "README.md");
+    if (fs.existsSync(readmePath)) {
+      return { success: true, content: fs.readFileSync(readmePath, "utf-8") };
+    }
+    return {
+      success: false,
+      error: "README.md not found in the pedals folder.",
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 // Debug Recording Handlers
 ipcMain.handle("pedals:startDebugRecord", () => {
   if (!hidConnected) return { success: false, error: "Pedals not connected" };
@@ -718,11 +870,26 @@ ipcMain.handle("pedals:stopDebugRecord", async () => {
 
 // Helper to locate the pedals directory depending on the environment
 function getPedalsDir() {
+  let dir;
   if (app.isPackaged) {
     // When installed/packaged, extraFiles puts 'pedals' next to the executable
-    return path.join(path.dirname(app.getPath("exe")), "pedals");
+    dir = path.join(path.dirname(app.getPath("exe")), "pedals");
+  } else {
+    dir = path.join(__dirname, "pedals");
   }
-  return path.join(__dirname, "pedals");
+
+  if (fs.existsSync(dir)) {
+    return dir;
+  }
+
+  // Fallback for some dev environments or odd builds
+  const fallback = path.join(process.cwd(), "pedals");
+  if (fs.existsSync(fallback)) {
+    return fallback;
+  }
+
+  console.warn(`[Pedals] Pedals directory NOT found at: ${dir} or ${fallback}`);
+  return dir;
 }
 
 // Load a plugin module by id ("pedals" = root, or subfolder name)
@@ -839,6 +1006,40 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    // IPC: Set global shortcut for recentering (only after app is ready)
+    let currentRecenterAccelerator = null;
+    ipcMain.handle("set-recenter-shortcut", (event, accelerator) => {
+      if (currentRecenterAccelerator) {
+        globalShortcut.unregister(currentRecenterAccelerator);
+        currentRecenterAccelerator = null;
+      }
+      if (accelerator) {
+        try {
+          const success = globalShortcut.register(accelerator, () => {
+            sendToRenderer("recenter-wheel", {});
+          });
+          if (success) {
+            currentRecenterAccelerator = accelerator;
+            return { success: true };
+          }
+          return {
+            success: false,
+            error: "Failed to register shortcut. May be invalid or in use.",
+          };
+        } catch (err) {
+          return { success: false, error: err.message };
+        }
+      }
+      return { success: true };
+    });
+
+    app.on("will-quit", () => {
+      // Unregister all shortcuts.
+      if (app.isReady()) {
+        globalShortcut.unregisterAll();
+      }
+    });
+
     loadSettings();
     createWindow();
     createTray();

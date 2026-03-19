@@ -1,0 +1,147 @@
+.md_modal_overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.md_modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.md_modal_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+  }
+
+  .md_modal_close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+
+.md_modal_content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+
+  /* Basic GitHub-flavor Markdown reset for the ReactMarkdown renderer */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-primary);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-top: 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3em;
+  }
+  h2 {
+    font-size: 1.3rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3em;
+  }
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  code {
+    background: rgba(var(--text-primary-rgb), 0.05);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+    border: 1px solid var(--border);
+  }
+
+  pre {
+    background: rgba(var(--text-primary-rgb), 0.05);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    margin-bottom: 1em;
+
+    code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.85rem;
+    }
+  }
+
+  ul,
+  ol {
+    margin-top: 0;
+    margin-bottom: 1em;
+    padding-left: 2em;
+  }
+
+  li {
+    margin-bottom: 0.25em;
+  }
+
+  blockquote {
+    border-left: 4px solid var(--accent);
+    margin: 0 0 1em 0;
+    padding-left: 1em;
+    color: var(--text-secondary);
+    opacity: 0.8;
+  }
+}

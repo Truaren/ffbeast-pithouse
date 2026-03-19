@@ -70,7 +70,7 @@ export const Slider = ({
 
   const isDisabled = disabled || (isPro && !isRegistered);
 
-  const POPUP_HEIGHT = 160; // estimated height
+  const POPUP_HEIGHT = 320; // estimated max height of the info panel
 
   const handleInfoClick = () => {
     const el = infoWrapRef.current;
@@ -113,50 +113,50 @@ export const Slider = ({
     <div className={`setting_option ${isDisabled ? "disabled" : ""}`}>
       {!hideLabel && (
         <div className="option_title">
-        <span>
-          {label} {isPro && <span className="pro_badge">PRO</span>}
-        </span>
+          <span>
+            {label} {isPro && <span className="pro_badge">PRO</span>}
+          </span>
 
-        <div className="value_controls">
-          <Button
-            variant="secondary"
-            disabled={isDisabled || value <= min}
-            onClick={() => commitValue(value - step)}
-          >
-            −
-          </Button>
-          <input
-            type="number"
-            className="value_input"
-            value={localValue}
-            min={min}
-            max={max}
-            step={step}
-            disabled={isDisabled}
-            onChange={(e) => handleLiveUpdate(Number(e.target.value))}
-            onBlur={() => commitValue(localValue)}
-            onKeyDown={(e) => e.key === "Enter" && commitValue(localValue)}
-          />
+          <div className="value_controls">
+            <Button
+              variant="secondary"
+              disabled={isDisabled || value <= min}
+              onClick={() => commitValue(value - step)}
+            >
+              −
+            </Button>
+            <input
+              type="number"
+              className="value_input"
+              value={localValue}
+              min={min}
+              max={max}
+              step={step}
+              disabled={isDisabled}
+              onChange={(e) => handleLiveUpdate(Number(e.target.value))}
+              onBlur={() => commitValue(localValue)}
+              onKeyDown={(e) => e.key === "Enter" && commitValue(localValue)}
+            />
 
-          <Button
-            variant="secondary"
-            disabled={isDisabled || value >= max}
-            onClick={() => commitValue(value + step)}
-          >
-            +
-          </Button>
+            <Button
+              variant="secondary"
+              disabled={isDisabled || value >= max}
+              onClick={() => commitValue(value + step)}
+            >
+              +
+            </Button>
 
-          {infoPanelProps && (
-            <span ref={infoWrapRef} style={{ display: 'inline-flex' }}>
-              <Button
-                variant="secondary"
-                icon="icon fi fi-rr-info"
-                onClick={() => handleInfoClick()}
-              />
-            </span>
-          )}
+            {infoPanelProps && (
+              <span ref={infoWrapRef} style={{ display: "inline-flex" }}>
+                <Button
+                  variant="secondary"
+                  icon="icon fi fi-rr-info"
+                  onClick={() => handleInfoClick()}
+                />
+              </span>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       <div className="slider_track_container">
@@ -170,7 +170,11 @@ export const Slider = ({
           onChange={(e) => handleLiveUpdate(Number(e.target.value))}
           onMouseUp={() => commitValue(localValue)}
           onTouchEnd={() => commitValue(localValue)}
-          style={{ '--slider-fill': `${((localValue - min) / (max - min)) * 100}%` } as React.CSSProperties}
+          style={
+            {
+              "--slider-fill": `${((localValue - min) / (max - min)) * 100}%`,
+            } as React.CSSProperties
+          }
         />
         <div className="ranges_text">
           <span>{min}</span>
@@ -179,7 +183,11 @@ export const Slider = ({
       </div>
 
       {showInfo && infoPanelProps && (
-        <div className="info_popup_wrapper" ref={infoPanelRef} style={popupStyle}>
+        <div
+          className="info_popup_wrapper"
+          ref={infoPanelRef}
+          style={popupStyle}
+        >
           <InfoPanel {...infoPanelProps} />
         </div>
       )}

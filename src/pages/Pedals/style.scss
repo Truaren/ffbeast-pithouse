@@ -26,6 +26,32 @@
       color: var(--accent);
     }
   }
+
+  .plugin_selector_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid var(--border);
+  }
+
+  .help_btn {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    &:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+  }
   .pedal_plugin_select {
     background: var(--bg-primary);
     border: 1px solid var(--border);
@@ -257,7 +283,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(var(--text-primary-rgb), 0.3);
   pointer-events: none;
   z-index: 2;
   transform: translateX(-50%);

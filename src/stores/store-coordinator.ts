@@ -10,6 +10,33 @@ import { useDeviceSettingsStore } from "./use-device-settings-store";
 import { useProfileStore } from "./use-profile-store";
 import { useWheelStore } from "./use-wheel-store";
 
+/**
+ * Fast structural equality for DeviceSettings.
+ * Compares effects + hardware only (the fields that drive profile detection).
+ * Avoids JSON.stringify key-order instability.
+ */
+function deviceSettingsEqual(a: DeviceSettings, b: DeviceSettings): boolean {
+  try {
+    return (
+      JSON.stringify(Object.fromEntries(Object.entries(a.effects).sort())) ===
+        JSON.stringify(Object.fromEntries(Object.entries(b.effects).sort())) &&
+      JSON.stringify(Object.fromEntries(Object.entries(a.hardware).sort())) ===
+        JSON.stringify(Object.fromEntries(Object.entries(b.hardware).sort()))
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Flags to track whether each store has finished rehydrating from IndexedDB.
+ * Set to `true` via the respective `onRehydrateStorage` callback in each store.
+ * Exposed here so the coordinator can read them synchronously.
+ */
+export const storeRehydrationFlags = {
+  preferences: false,
+};
+
 export function initStoreCoordinator() {
   console.log("Initializing Store Coordinator...");
 
@@ -43,9 +70,10 @@ export function initStoreCoordinator() {
           setSettings(deviceSettings);
 
           if (activeProfile) {
-            const isMatch =
-              JSON.stringify(activeProfile.deviceSettings) ===
-              JSON.stringify(deviceSettings);
+            const isMatch = deviceSettingsEqual(
+              activeProfile.deviceSettings,
+              deviceSettings,
+            );
             if (isMatch) {
               console.log(
                 `Device settings match '${activeProfile.name}'. Keeping profile active.`,
@@ -75,7 +103,6 @@ export function initStoreCoordinator() {
       async (activeProfile) => {
         // Only react to actual profile selection (not clearing)
         if (!activeProfile) return;
-        // if (!activeProfile || activeProfile.id === prevProfile?.id) return;
 
         console.log(`Applying profile '${activeProfile.name}'...`);
 
@@ -85,11 +112,11 @@ export function initStoreCoordinator() {
         const { withProfileApplication } = useProfileStore.getState();
 
         await withProfileApplication(async () => {
-          // Merge app state: Keep global settings from current preferences, 
+          // Merge app state: Keep global settings from current preferences,
           // only apply profile-specific settings (like pedal bindings, inversions) from the active profile.
           const currentPrefs = useAppPreferencesStore.getState().preferences;
           const profilePrefs = activeProfile.appPreferences;
-          
+
           replacePreferences({
             ...currentPrefs, // keep current global UI settings, auto-profiles, theme, etc
             pedalBindings: profilePrefs.pedalBindings,
@@ -115,17 +142,18 @@ export function initStoreCoordinator() {
 
   // -------------------------------------------------------------
   // Any App Preference Changed → Mark Profile Dirty
-  // (Skips the initial rehydration burst)
+  // Uses onRehydrateStorage flag instead of a fragile setTimeout
   // -------------------------------------------------------------
-  let isReady = false;
-  setTimeout(() => { isReady = true; }, 500);
-
   unsubscribers.push(
     useAppPreferencesStore.subscribe(
       (state) => state.preferences,
       (newPrefs, oldPrefs) => {
-        if (!isReady) return; // Ignore initial rehydration
-        if (JSON.stringify(newPrefs) !== JSON.stringify(oldPrefs)) {
+        // Ignore changes during IndexedDB rehydration
+        if (!storeRehydrationFlags.preferences) return;
+        if (
+          JSON.stringify(Object.entries(newPrefs).sort()) !==
+          JSON.stringify(Object.entries(oldPrefs).sort())
+        ) {
           console.log(`App preferences changed. Marking profile dirty.`);
           useProfileStore.getState().markDirty();
         }

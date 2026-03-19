@@ -6,7 +6,7 @@
 const DEVICE_INFO = {
   vendorId: 0x2348,
   productId: 0x8038,
-  name: "Moza SR-P Lite",
+  name: "Moza SR-P Lite (Arduino Pro Micro)",
 };
 
 /**

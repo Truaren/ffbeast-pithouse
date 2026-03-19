@@ -42,6 +42,11 @@ interface AppPreferencesActions {
   setSidebarConfig: (
     config: { id: string; visible: boolean; order: number }[],
   ) => void;
+  setCenterWheelKey: (key: string | null) => void;
+  setPerformanceSetting: (
+    key: keyof NonNullable<AppPreferences["performance"]>,
+    value: boolean,
+  ) => void;
   replacePreferences: (preferences: AppPreferences) => void;
 }
 
@@ -161,7 +166,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
         togglePedalVisibility: (pedal) => {
           set((state) => {
-            const hidden = state.preferences.hiddenPedals || [];
+            const hidden = state.preferences.hiddenPedals ?? [];
             const newHidden = hidden.includes(pedal)
               ? hidden.filter((p) => p !== pedal)
               : [...hidden, pedal];
@@ -176,7 +181,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
         togglePedalInversion: (pedal) => {
           set((state) => {
-            const inverted = state.preferences.invertedPedals || [];
+            const inverted = state.preferences.invertedPedals ?? [];
             const newInverted = inverted.includes(pedal)
               ? inverted.filter((p) => p !== pedal)
               : [...inverted, pedal];
@@ -194,7 +199,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
             preferences: {
               ...state.preferences,
               pedalBindings: {
-                ...(state.preferences.pedalBindings || {}),
+                ...(state.preferences.pedalBindings ?? {}),
                 [pedal]: axisIndex,
               },
             },
@@ -221,7 +226,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
         addAutoProfile: (exeName, profileId) => {
           set((state) => {
-            const profiles = state.preferences.autoProfiles || [];
+            const profiles = state.preferences.autoProfiles ?? [];
             // Remove existing mapping for this exe if it exists, then add the new one
             const filtered = profiles.filter(
               (p) => p.exeName.toLowerCase() !== exeName.toLowerCase(),
@@ -237,7 +242,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
         removeAutoProfile: (exeName) => {
           set((state) => {
-            const profiles = state.preferences.autoProfiles || [];
+            const profiles = state.preferences.autoProfiles ?? [];
             return {
               preferences: {
                 ...state.preferences,
@@ -258,6 +263,34 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
           }));
         },
 
+        setCenterWheelKey: (key) => {
+          set((state) => ({
+            preferences: {
+              ...state.preferences,
+              centerWheelKey: key,
+            },
+          }));
+        },
+
+        setPerformanceSetting: (key, value) => {
+          set((state) => ({
+            preferences: {
+              ...state.preferences,
+              performance: {
+                ...(state.preferences.performance ?? {
+                  disableHardwareAcceleration: false,
+                  reduceInputPolling: false,
+                  safeMode: false,
+                  disableDebugLogging: false,
+                  forceAsyncFileOps: false,
+                  enableDeviceReconnect: false,
+                }),
+                [key]: value,
+              },
+            },
+          }));
+        },
+
         replacePreferences: (preferences) => {
           applyThemeToDOM(preferences.theme);
           set({ preferences: preferences });
@@ -270,6 +303,15 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
           if (!state) return;
           console.log("Rehydrating App Preferences Store...");
           applyThemeToDOM(state.preferences.theme);
+          // Signal that IndexedDB rehydration is complete
+          // This is used by store-coordinator to ignore the initial burst of changes
+          import("./store-coordinator")
+            .then(({ storeRehydrationFlags }) => {
+              storeRehydrationFlags.preferences = true;
+            })
+            .catch(() => {
+              /* ignore */
+            });
         },
       },
     ),
@@ -278,32 +320,23 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
 // --- Disk Persistence Sync ---
 
-interface ElectronWindow extends Window {
-  require: (module: "electron") => {
-    ipcRenderer: {
-      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-    };
-  };
-}
-
-const winPrefs = window as unknown as ElectronWindow;
-if (typeof window !== "undefined" && winPrefs.require) {
-  const { ipcRenderer } = winPrefs.require("electron");
+if (typeof window !== "undefined" && window.electron) {
+  const electron = window.electron;
 
   // Load from disk on startup
-  void ipcRenderer.invoke("load-preferences").then((res) => {
+  void electron.invoke("load-preferences").then((res) => {
     const diskPrefs = res as AppPreferences | null;
     if (diskPrefs) {
       console.log("App preferences loaded from disk, syncing store...");
-      useAppPreferencesStore.getState().replacePreferences(diskPrefs);
+      useAppPreferencesStore.setState({ preferences: diskPrefs });
     }
   });
 
   // Subscribe to changes and save to disk
   useAppPreferencesStore.subscribe(
     (state) => state.preferences,
-    (prefs) => {
-      ipcRenderer.invoke("save-preferences", prefs).catch((err: Error) => {
+    (preferences) => {
+      electron.invoke("save-preferences", preferences).catch((err: unknown) => {
         console.error("Failed to sync preferences to disk:", err);
       });
     },

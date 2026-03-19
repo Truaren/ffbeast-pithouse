@@ -1,60 +1,24 @@
 /**
  * Pedals.tsx — Full FEEL-VR Pedal curve editor + calibration
- * Logic ported from FEEL-VR Control reference app
+ * Logic ported from FEEL-VR Control reference app + Zustand integration
  */
 import "./style.scss";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-// ─── IPC helper ───────────────────────────────────────────────────────────────
+import { MarkdownModal, ToggleSwitch } from "@/components/ui";
+import { useElectron } from "@/hooks/use-electron";
+import type {
+  DeadzoneState,
+  PedalConfig,
+  PedalName,
+  Preset,
+  Pt,
+} from "@/stores";
+import { usePedalsStore } from "@/stores";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IpcRenderer {
-  invoke: (ch: string, ...a: any[]) => Promise<any>;
-  on: (ch: string, fn: (...a: any[]) => void) => void;
-  removeListener: (ch: string, fn: (...a: any[]) => void) => void;
-}
-function getIpc(): IpcRenderer | null {
-  const win = window as unknown as {
-    require?: (m: string) => { ipcRenderer: IpcRenderer };
-  };
-  return win.require ? win.require("electron").ipcRenderer : null;
-}
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-type Pt = [number, number];
-type PedalName = "clutch" | "brake" | "throttle";
-type Preset = "linear" | "exp" | "log" | "s-curve" | "custom";
-
-interface PluginInfo {
-  id: string;
-  name: string;
-  vendorId?: number;
-  productId?: number;
-  isDefault?: boolean;
-}
-
-interface PedalConfig {
-  throtl_min: number;
-  throtl_max: number;
-  brake_min: number;
-  brake_max: number;
-  clutch_min: number;
-  clutch_max: number;
-}
-interface DeadzoneState {
-  min: number;
-  max: number;
-}
-interface CalibrationState {
-  active: boolean;
-  pedal: PedalName | null;
-  minRaw: number | null;
-  maxRaw: number | null;
-  ignoreUntil: number;
-}
-
+// ─── Constants ────────────────────────────────────────────────────────────────
 const PEDALS: PedalName[] = ["clutch", "brake", "throttle"];
 const DEFAULT_LABELS: Record<PedalName, string> = {
   clutch: "Clutch",
@@ -67,20 +31,26 @@ const PEDAL_COLORS: Record<PedalName, string> = {
   throttle: "#34d399",
 };
 
+interface PluginInfo {
+  id: string;
+  name: string;
+  vendorId?: number;
+  productId?: number;
+  isDefault?: boolean;
+}
+
+interface CalibrationState {
+  active: boolean;
+  pedal: PedalName | null;
+  minRaw: number | null;
+  maxRaw: number | null;
+  ignoreUntil: number;
+}
+
 // ─── Curve math ───────────────────────────────────────────────────────────────
 const SVG_W = 300,
   SVG_H = 200,
   PAD = 10;
-
-function defaultPts(): Pt[] {
-  return [
-    [0, 1],
-    [0.25, 0.75],
-    [0.5, 0.5],
-    [0.75, 0.25],
-    [1, 0],
-  ];
-}
 
 const PRESETS: Record<Preset, Pt[]> = {
   linear: [
@@ -139,6 +109,7 @@ function buildSplinePath(pts: Pt[]): string {
 }
 
 function applyCurve(pts: Pt[], t: number): number {
+  if (!pts?.length) return t;
   for (let i = 0; i < pts.length - 1; i++) {
     if (t >= pts[i][0] && t <= pts[i + 1][0]) {
       const lt = (t - pts[i][0]) / (pts[i + 1][0] - pts[i][0]),
@@ -147,32 +118,6 @@ function applyCurve(pts: Pt[], t: number): number {
     }
   }
   return t <= pts[0][0] ? 1 - pts[0][1] : 1 - pts[pts.length - 1][1];
-}
-
-// ─── Persistence ──────────────────────────────────────────────────────────────
-const STORAGE_KEY = "pithouse_pedal_settings_v2";
-interface SavedSettings {
-  curves: Record<PedalName, Pt[]>;
-  reversed: Record<PedalName, boolean>;
-  deadzones: Record<PedalName, DeadzoneState>;
-  rawConfig: PedalConfig | null;
-  labels: Record<PedalName, string>;
-  hidden: Record<PedalName, boolean>;
-}
-function loadSettings(): SavedSettings | null {
-  try {
-    const r = localStorage.getItem(STORAGE_KEY);
-    return r ? (JSON.parse(r) as SavedSettings) : null;
-  } catch {
-    return null;
-  }
-}
-function saveSettings(s: SavedSettings) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  } catch {
-    /* noop */
-  }
 }
 
 // ─── Preset Icons ─────────────────────────────────────────────────────────────
@@ -259,7 +204,8 @@ const CurveEditor = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const dragIdx = useRef<number | null>(null);
   const color = PEDAL_COLORS[pedal];
-  const pathData = buildSplinePath(pts);
+  const renderedPts = pts || PRESETS.custom;
+  const pathData = buildSplinePath(renderedPts);
   const fillData =
     pathData + ` L${SVG_W - PAD},${SVG_H - PAD} L${PAD},${SVG_H - PAD} Z`;
   const barX = liveRatio * (SVG_W - PAD * 2) + PAD;
@@ -275,9 +221,9 @@ const CurveEditor = ({
   function onDown(e: React.PointerEvent<SVGSVGElement>) {
     const pos = toNorm(e);
     if (!pos) return;
-    for (let i = 0; i < pts.length; i++) {
-      const px = pts[i][0] * (SVG_W - PAD * 2) + PAD,
-        py = pts[i][1] * (SVG_H - PAD * 2) + PAD;
+    for (let i = 0; i < renderedPts.length; i++) {
+      const px = renderedPts[i][0] * (SVG_W - PAD * 2) + PAD,
+        py = renderedPts[i][1] * (SVG_H - PAD * 2) + PAD;
       if (Math.hypot(pos.x - px, pos.y - py) < 14) {
         dragIdx.current = i;
         (e.target as SVGElement).setPointerCapture(e.pointerId);
@@ -292,15 +238,15 @@ const CurveEditor = ({
     const i = dragIdx.current;
     const nx = Math.max(0, Math.min(1, (pos.x - PAD) / (SVG_W - PAD * 2)));
     const ny = Math.max(0, Math.min(1, (pos.y - PAD) / (SVG_H - PAD * 2)));
-    const minX = i > 0 ? pts[i - 1][0] + 0.01 : 0,
-      maxX = i < pts.length - 1 ? pts[i + 1][0] - 0.01 : 1;
+    const minX = i > 0 ? renderedPts[i - 1][0] + 0.01 : 0,
+      maxX = i < renderedPts.length - 1 ? renderedPts[i + 1][0] - 0.01 : 1;
     const fx =
       i === 0
         ? 0
-        : i === pts.length - 1
+        : i === renderedPts.length - 1
           ? 1
           : Math.max(minX, Math.min(maxX, nx));
-    onChange(pts.map((p, idx) => (idx === i ? ([fx, ny] as Pt) : p)));
+    onChange(renderedPts.map((p, idx) => (idx === i ? ([fx, ny] as Pt) : p)));
   }
 
   return (
@@ -362,7 +308,7 @@ const CurveEditor = ({
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        {pts.map(([nx, ny], i) => {
+        {renderedPts.map(([nx, ny], i) => {
           const cx = nx * (SVG_W - PAD * 2) + PAD,
             cy = ny * (SVG_H - PAD * 2) + PAD;
           return (
@@ -618,18 +564,11 @@ const PedalCard = (p: CardProps) => {
           {/* Controls row: Reverse + DZ + Calibrate in a tighter layout */}
           <div className="card_bottom_grid">
             <label className="card_reverse_row">
-              <span className="dz_label">Reverse</span>
-              <label className="toggle_switch">
-                <input
-                  type="checkbox"
-                  checked={p.reversed}
-                  onChange={(e) => p.onReverse(e.target.checked)}
-                />
-                <span className="toggle_slider" />
-              </label>
-              <span className="toggle_state_txt">
-                {p.reversed ? "On" : "Off"}
-              </span>
+              <ToggleSwitch
+                label="Reverse"
+                checked={p.reversed}
+                onToggle={(val) => p.onReverse(val)}
+              />
             </label>
 
             <div className="dz_compact">
@@ -699,24 +638,30 @@ const StatusBar = ({
   plugins,
   activeId,
   setActiveId,
+  isDefault,
+  setIsDefault,
   onLoad,
   loading,
   hiddenCount,
   onShowAll,
   isRecording,
   onToggleRecord,
+  onGetHelp,
 }: {
   connected: boolean;
   name: string;
   plugins: PluginInfo[];
   activeId: string;
   setActiveId: (s: string) => void;
+  isDefault: boolean;
+  setIsDefault: (val: boolean) => void;
   onLoad: () => void;
   loading: boolean;
   hiddenCount: number;
   onShowAll: () => void;
   isRecording: boolean;
   onToggleRecord: () => void;
+  onGetHelp: () => void;
 }) => (
   <div className="pedal_plugin_bar">
     <i
@@ -724,7 +669,7 @@ const StatusBar = ({
       style={{ color: connected ? "var(--accent)" : "var(--text-secondary)" }}
     />
     <span className={`pedal_plugin_status ${connected ? "connected" : ""}`}>
-      {connected ? name : "No pedals detected"}
+      {connected ? name : "No device found"}
     </span>
     <button
       className={`debug_record_btn ${isRecording ? "recording" : ""}`}
@@ -757,22 +702,43 @@ const StatusBar = ({
           animation: isRecording ? "pulse 1s infinite" : "none",
         }}
       />
-      {isRecording ? "Stop Recording" : "Debug Record"}
+      {isRecording ? "Stop Recording" : ""}
     </button>
+
     <span style={{ opacity: 0.4, margin: "0 6px", flex: 1 }}></span>
-    <span className="dz_label">Config:</span>
-    <select
-      className="pedal_plugin_select"
-      value={activeId}
-      onChange={(e) => setActiveId(e.target.value)}
-    >
-      {plugins.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-          {p.isDefault ? " (default)" : ""}
-        </option>
-      ))}
-    </select>
+
+    <button className="help_btn" onClick={onGetHelp}>
+      <i className="fi fi-rr-interrogation" style={{ marginRight: 6 }} />
+      How to add your pedal
+    </button>
+
+    <div className="plugin_selector_wrapper">
+      <span className="dz_label">Config:</span>
+      <select
+        className="pedal_plugin_select"
+        value={activeId}
+        onChange={(e) => setActiveId(e.target.value)}
+      >
+        {plugins.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+      <div
+        style={{
+          marginLeft: "12px",
+          transform: "scale(0.8)",
+          transformOrigin: "left center",
+        }}
+      >
+        <ToggleSwitch
+          label="Default"
+          checked={isDefault}
+          onToggle={setIsDefault}
+        />
+      </div>
+    </div>
     <button
       className={`plugin_load_btn ${loading ? "loading" : ""}`}
       onClick={onLoad}
@@ -795,37 +761,10 @@ const StatusBar = ({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export const Pedals = () => {
+  const electron = useElectron();
+
   const [isConnected, setIsConnected] = useState(false);
   const [deviceName, setDeviceName] = useState("");
-  const [config, setConfig] = useState<PedalConfig | null>(null);
-  const [rawConfig, setRawConfig] = useState<PedalConfig | null>(null);
-  const [curves, setCurves] = useState<Record<PedalName, Pt[]>>({
-    clutch: defaultPts(),
-    brake: defaultPts(),
-    throttle: defaultPts(),
-  });
-  const [presets, setPresets] = useState<Record<PedalName, Preset>>({
-    clutch: "custom",
-    brake: "custom",
-    throttle: "custom",
-  });
-  const [reversed, setReversed] = useState<Record<PedalName, boolean>>({
-    clutch: false,
-    brake: false,
-    throttle: false,
-  });
-  const [deadzones, setDeadzones] = useState<Record<PedalName, DeadzoneState>>({
-    clutch: { min: 0, max: 0 },
-    brake: { min: 0, max: 0 },
-    throttle: { min: 0, max: 0 },
-  });
-  const [labels, setLabels] =
-    useState<Record<PedalName, string>>(DEFAULT_LABELS);
-  const [hidden, setHidden] = useState<Record<PedalName, boolean>>({
-    clutch: false,
-    brake: false,
-    throttle: false,
-  });
   const [telemetryLive, setTelemetryLive] = useState<Record<PedalName, number>>(
     { throttle: 0, brake: 0, clutch: 0 },
   );
@@ -836,80 +775,125 @@ export const Pedals = () => {
     maxRaw: null,
     ignoreUntil: 0,
   });
-  const [plugins, setPlugins] = useState<PluginInfo[]>([
-    { id: "pedals", name: "FEEL-VR Pedals", isDefault: true },
-  ]);
-  const [activePlugin, setActivePlugin] = useState("pedals");
+  const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [pluginLoading, setPluginLoading] = useState(false);
   const [isRecordingDebug, setIsRecordingDebug] = useState(false);
+
+  const [isReadmeOpen, setIsReadmeOpen] = useState(false);
+  const [readmeContent, setReadmeContent] = useState("");
+
   const calRef = useRef(cal);
   calRef.current = cal;
 
-  // Load settings
-  useEffect(() => {
-    const s = loadSettings();
-    if (s) {
-      if (s.curves) setCurves(s.curves);
-      if (s.reversed) setReversed(s.reversed);
-      if (s.deadzones) setDeadzones(s.deadzones);
-      if (s.rawConfig) setRawConfig(s.rawConfig);
-      if (s.labels) setLabels(s.labels);
-      if (s.hidden) setHidden(s.hidden);
-    }
-  }, []);
+  // Store Connections
+  const activePluginId = usePedalsStore((s) => s.activePluginId);
+  const defaultPluginId = usePedalsStore((s) => s.defaultPluginId);
+  const {
+    setActivePluginId,
+    setDefaultPluginId,
+    updateConfig,
+    getPluginConfig,
+  } = usePedalsStore();
 
-  // IPC setup
-  useEffect(() => {
-    const ipc = getIpc();
-    if (!ipc) return;
+  const currentConfigObj = getPluginConfig(activePluginId);
+  const { curves, presets, reversed, deadzones, rawConfig, labels, hidden } =
+    currentConfigObj;
 
-    // Check status and immediately load config if already connected at mount time
-    void ipc.invoke("pedals:getStatus").then((s: { connected: boolean }) => {
-      const alreadyConnected = s?.connected ?? false;
-      setIsConnected(alreadyConnected);
-      if (alreadyConnected) {
-        void ipc
-          .invoke("pedals:getConfig")
-          .then((res: { success: boolean; config: PedalConfig }) => {
-            if (res.success && res.config) {
-              setConfig(res.config);
-              setRawConfig((prev) => prev ?? res.config);
-            }
-          });
-      }
-    });
-    void ipc
+  const isDefault = defaultPluginId === activePluginId;
+  const setIsDefault = (val: boolean) =>
+    setDefaultPluginId(val ? activePluginId : null);
+
+  // IPC setup & init
+  useEffect(() => {
+    if (!electron) return;
+
+    electron
       .invoke("pedals:listPlugins")
-      .then((l: PluginInfo[]) => {
-        if (l?.length) setPlugins(l);
-      })
-      .catch(() => undefined);
-    const onConnected = (_: unknown, data: { name: string }) => {
-      setIsConnected(true);
-      setDeviceName(data?.name ?? "FEEL-VR Pedals");
-      toast.success("Pedals connected");
-      void ipc
-        .invoke("pedals:getConfig")
-        .then((res: { success: boolean; config: PedalConfig }) => {
-          if (res.success && res.config) {
-            setConfig(res.config);
-            setRawConfig((prev) => prev ?? res.config);
+      .then((l) => {
+        const pluginList = Array.isArray(l) ? l : [];
+        if (pluginList.length > 0) {
+          setPlugins(pluginList as PluginInfo[]);
+
+          // Auto-load logic: if defaultPlugin is set, pick it. Otherwise keep current active plugin.
+          const useStoreDefault = usePedalsStore.getState().defaultPluginId;
+          if (useStoreDefault) {
+            setActivePluginId(useStoreDefault);
+          } else {
+            // wait to see if a device is connected to auto-match
           }
-        });
+        }
+      })
+      .catch((err: unknown) => {
+        const error = err as Error;
+        console.error(error);
+        toast.error(
+          "Backend error: Please fully restart the app to apply IPC changes. " +
+            error.message,
+        );
+      });
+
+    electron
+      .invoke("pedals:getStatus")
+      .then((s) => {
+        const st = s as { connected: boolean };
+        const alreadyConnected = st?.connected ?? false;
+        setIsConnected(alreadyConnected);
+        if (alreadyConnected) {
+          electron
+            .invoke("pedals:getConfig")
+            .then((res) => {
+              const cfg = res as { success: boolean; config: PedalConfig };
+              if (cfg.success && cfg.config) {
+                updateConfig(activePluginId, { rawConfig: cfg.config });
+              }
+            })
+            .catch(() => {
+              /* skip */
+            });
+        }
+      })
+      .catch(() => {
+        /* skip */
+      });
+
+    const onConnected = (_: unknown, data: unknown) => {
+      setIsConnected(true);
+      const payload = (data as { name?: string; id?: string }) || {};
+      const matchedName = payload.name ?? "FEEL-VR PedalsLite";
+      setDeviceName(matchedName);
+      toast.success("Pedals connected: " + matchedName);
+
+      // Auto-load config specific to this device based on name/id
+      const currentDefault = usePedalsStore.getState().defaultPluginId;
+      if (!currentDefault) {
+        const matchingPlugin = usePedalsStore.getState().configs[matchedName];
+        if (matchingPlugin) {
+          setActivePluginId(matchedName); // switch to device config if we don't force a default
+        }
+      }
+
+      void electron.invoke("pedals:getConfig").then((res) => {
+        const cfg = res as { success: boolean; config: PedalConfig };
+        if (cfg.success && cfg.config) {
+          updateConfig(activePluginId, { rawConfig: cfg.config });
+        }
+      });
     };
+
     const onDisconnected = () => {
       setIsConnected(false);
+      setDeviceName("");
       setTelemetryLive({ throttle: 0, brake: 0, clutch: 0 });
     };
-    const onLiveData = (
-      _: unknown,
-      data: {
+
+    const onLiveData = (_: unknown, data: unknown) => {
+      const d = data as {
         raw: { axis1: number; axis2: number; axis3: number };
         telemetry?: { throttle: number; brake: number; clutch: number };
-      },
-    ) => {
-      const { axis1, axis2, axis3 } = data.raw;
-      if (data.telemetry) setTelemetryLive(data.telemetry);
+      };
+      if (!d?.raw) return;
+      const { axis1, axis2, axis3 } = d.raw;
+      if (d.telemetry) setTelemetryLive(d.telemetry);
       const c = calRef.current;
       if (c.active && c.pedal && Date.now() >= c.ignoreUntil) {
         const rv =
@@ -921,51 +905,60 @@ export const Pedals = () => {
         }));
       }
     };
-    ipc.on("pedals:connected", onConnected);
-    ipc.on("pedals:disconnected", onDisconnected);
-    ipc.on("pedals:liveData", onLiveData);
+
+    const unsubConnected = electron.on("pedals:connected", onConnected);
+    const unsubDisconnected = electron.on(
+      "pedals:disconnected",
+      onDisconnected,
+    );
+    const unsubLiveData = electron.on("pedals:liveData", onLiveData);
+
     return () => {
-      ipc.removeListener("pedals:connected", onConnected);
-      ipc.removeListener("pedals:disconnected", onDisconnected);
-      ipc.removeListener("pedals:liveData", onLiveData);
+      unsubConnected?.();
+      unsubDisconnected?.();
+      unsubLiveData?.();
     };
-  }, []);
+  }, [electron, activePluginId, setActivePluginId, updateConfig]);
 
   const getRatio = (pedal: PedalName) => {
     const rawRatio = telemetryLive[pedal] ?? 0;
-    const inp = reversed[pedal] ? 1 - rawRatio : rawRatio;
-    return { input: inp, output: applyCurve(curves[pedal], inp) };
+    const isReversed = reversed[pedal] || false;
+    const inp = isReversed ? 1 - rawRatio : rawRatio;
+    return {
+      input: inp,
+      output: applyCurve(curves[pedal] || PRESETS.custom, inp),
+    };
   };
 
   const handleLoadPlugin = async () => {
-    const ipc = getIpc();
-    if (!ipc) return;
+    if (!electron) return;
     setPluginLoading(true);
     try {
-      const res = (await ipc.invoke("pedals:loadPlugin", activePlugin)) as {
+      const res = (await electron.invoke(
+        "pedals:loadPlugin",
+        activePluginId,
+      )) as {
         success: boolean;
         name?: string;
         connected?: boolean;
         error?: string;
       };
       if (res.success) {
-        const pluginName = res.name ?? activePlugin;
+        const pluginName = res.name ?? activePluginId;
         if (res.connected) {
           setIsConnected(true);
           setDeviceName(pluginName);
-          toast.success(`✓ Loaded "${pluginName}" — pedals connected`);
-          // Reload config from device with new plugin
-          const cfgRes = (await ipc.invoke("pedals:getConfig")) as {
+          toast.success(`✓ Loaded "${pluginName}"`);
+          const cfgRes = (await electron.invoke("pedals:getConfig")) as {
             success: boolean;
             config: PedalConfig;
           };
           if (cfgRes.success && cfgRes.config) {
-            setConfig(cfgRes.config);
-            setRawConfig((prev) => prev ?? cfgRes.config);
+            updateConfig(activePluginId, { rawConfig: cfgRes.config });
           }
         } else {
           setIsConnected(false);
-          toast.info(`Plugin "${pluginName}" loaded — pedals not connected`);
+          toast.info(`Plugin "${pluginName}" loaded — no physical device`);
         }
       } else {
         toast.error("Load failed: " + (res.error ?? "unknown"));
@@ -975,69 +968,16 @@ export const Pedals = () => {
     }
   };
 
-  const persist = useCallback(
-    (
-      c: Record<PedalName, Pt[]>,
-      r: Record<PedalName, boolean>,
-      d: Record<PedalName, DeadzoneState>,
-      rc: PedalConfig | null,
-      l: Record<PedalName, string>,
-      h: Record<PedalName, boolean>,
-    ) => {
-      saveSettings({
-        curves: c,
-        reversed: r,
-        deadzones: d,
-        rawConfig: rc,
-        labels: l,
-        hidden: h,
-      });
-    },
-    [],
-  );
-
-  const handlePts = (pedal: PedalName, pts: Pt[]) => {
-    const n = { ...curves, [pedal]: pts };
-    setCurves(n);
-    persist(n, reversed, deadzones, rawConfig, labels, hidden);
-  };
-  const handlePreset = (pedal: PedalName, pr: Preset) => {
-    setPresets((p) => ({ ...p, [pedal]: pr }));
-    if (pr !== "custom") {
-      const n = { ...curves, [pedal]: PRESETS[pr].map((pt) => [...pt] as Pt) };
-      setCurves(n);
-      persist(n, reversed, deadzones, rawConfig, labels, hidden);
-    }
-  };
-  const handleReverse = (pedal: PedalName, v: boolean) => {
-    const n = { ...reversed, [pedal]: v };
-    setReversed(n);
-    persist(curves, n, deadzones, rawConfig, labels, hidden);
-  };
-  const handleDzChange = (pedal: PedalName, w: "min" | "max", v: number) =>
-    setDeadzones((prev) => ({ ...prev, [pedal]: { ...prev[pedal], [w]: v } }));
-  const handleRename = (pedal: PedalName, s: string) => {
-    const n = { ...labels, [pedal]: s };
-    setLabels(n);
-    persist(curves, reversed, deadzones, rawConfig, n, hidden);
-  };
-  const toggleHide = (pedal: PedalName) => {
-    const n = { ...hidden, [pedal]: !hidden[pedal] };
-    setHidden(n);
-    persist(curves, reversed, deadzones, rawConfig, labels, n);
-  };
-  const showAll = () => {
-    const n = { clutch: false, brake: false, throttle: false };
-    setHidden(n);
-    persist(curves, reversed, deadzones, rawConfig, labels, n);
-  };
+  const showAll = () =>
+    updateConfig(activePluginId, {
+      hidden: { clutch: false, brake: false, throttle: false },
+    });
 
   const handleDzCommit = async (pedal: PedalName) => {
-    if (!rawConfig || !config) return;
-    const ipc = getIpc();
-    if (!ipc) return;
-    const dz = deadzones[pedal],
-      nc = { ...config };
+    if (!rawConfig) return;
+    if (!electron) return;
+    const dz = deadzones[pedal];
+    const nc = { ...rawConfig };
     if (pedal === "throttle") {
       const dist = rawConfig.throtl_max - rawConfig.throtl_min;
       nc.throtl_max = Math.round(rawConfig.throtl_max - dist * (dz.min / 100));
@@ -1051,23 +991,22 @@ export const Pedals = () => {
       nc.clutch_min = Math.round(rawConfig.clutch_min + dist * (dz.min / 100));
       nc.clutch_max = Math.round(rawConfig.clutch_max - dist * (dz.max / 100));
     }
-    const res = (await ipc.invoke("pedals:setConfig", nc)) as {
+    const res = (await electron.invoke("pedals:setConfig", nc)) as {
       success: boolean;
     };
     if (res.success) {
-      setConfig(nc);
-      await ipc.invoke("pedals:saveConfig");
-      persist(curves, reversed, deadzones, rawConfig, labels, hidden);
+      await electron.invoke("pedals:saveConfig");
+      updateConfig(activePluginId, { rawConfig: nc });
       toast.success("Deadzone applied");
     }
   };
 
   const openCalibration = async (pedal: PedalName) => {
-    if (!isConnected || !config) return;
-    const ipc = getIpc();
-    if (!ipc) return;
-    const t = { ...config };
-    const def = (await ipc.invoke("pedals:getDefaults")) as PedalConfig | null;
+    if (!isConnected || !rawConfig || !electron) return;
+    const t = { ...rawConfig };
+    const def = (await electron.invoke(
+      "pedals:getDefaults",
+    )) as PedalConfig | null;
     if (pedal === "throttle") {
       t.throtl_min = def?.throtl_min ?? 0;
       t.throtl_max = def?.throtl_max ?? 16384;
@@ -1078,7 +1017,7 @@ export const Pedals = () => {
       t.clutch_min = def?.clutch_min ?? 0;
       t.clutch_max = def?.clutch_max ?? 16384;
     }
-    await ipc.invoke("pedals:setConfig", t);
+    await electron.invoke("pedals:setConfig", t);
     setCal({
       active: true,
       pedal,
@@ -1091,13 +1030,19 @@ export const Pedals = () => {
   const finishCalibration = async () => {
     const { pedal, minRaw, maxRaw } = calRef.current;
     setCal((p) => ({ ...p, active: false }));
-    const ipc = getIpc();
-    if (!pedal || minRaw === null || maxRaw === null || !config || !ipc) {
+    if (
+      !pedal ||
+      minRaw === null ||
+      maxRaw === null ||
+      !rawConfig ||
+      !electron
+    ) {
       toast.warning("No data — cancelled");
-      if (config && ipc) await ipc.invoke("pedals:setConfig", config);
+      if (rawConfig && electron)
+        await electron.invoke("pedals:setConfig", rawConfig);
       return;
     }
-    const nc = { ...config };
+    const nc = { ...rawConfig };
     if (pedal === "throttle") {
       nc.throtl_min = minRaw;
       nc.throtl_max = maxRaw;
@@ -1108,47 +1053,44 @@ export const Pedals = () => {
       nc.clutch_min = minRaw;
       nc.clutch_max = maxRaw;
     }
-    const res = (await ipc.invoke("pedals:setConfig", nc)) as {
+    const res = (await electron.invoke("pedals:setConfig", nc)) as {
       success: boolean;
       error?: string;
     };
     if (res.success) {
-      toast.success("Calibration saved ✓");
-      setConfig(nc);
-      const nr = { ...(rawConfig ?? config), ...nc };
-      setRawConfig(nr);
-      await ipc.invoke("pedals:saveConfig");
-      const nd = { ...deadzones, [pedal]: { min: 0, max: 0 } };
-      setDeadzones(nd);
-      persist(curves, reversed, nd, nr, labels, hidden);
+      toast.success("Calibration saved");
+      await electron.invoke("pedals:saveConfig");
+      updateConfig(activePluginId, {
+        rawConfig: nc,
+        deadzones: { ...deadzones, [pedal]: { min: 0, max: 0 } },
+      });
     } else {
       toast.error("Save failed: " + (res.error ?? "unknown"));
-      await ipc.invoke("pedals:setConfig", config);
+      await electron.invoke("pedals:setConfig", rawConfig);
     }
   };
+
   const cancelCalibration = async () => {
     setCal((p) => ({ ...p, active: false }));
-    const ipc = getIpc();
-    if (config && ipc) await ipc.invoke("pedals:setConfig", config);
+    if (rawConfig && electron)
+      await electron.invoke("pedals:setConfig", rawConfig);
   };
 
   const getMinMax = (pedal: PedalName) => {
-    if (!config) return null;
+    if (!rawConfig) return null;
     return pedal === "throttle"
-      ? { min: config.throtl_min, max: config.throtl_max }
+      ? { min: rawConfig.throtl_min, max: rawConfig.throtl_max }
       : pedal === "brake"
-        ? { min: config.brake_min, max: config.brake_max }
-        : { min: config.clutch_min, max: config.clutch_max };
+        ? { min: rawConfig.brake_min, max: rawConfig.brake_max }
+        : { min: rawConfig.clutch_min, max: rawConfig.clutch_max };
   };
 
   const hiddenCount = PEDALS.filter((p) => hidden[p]).length;
 
   const toggleDebugRecord = async () => {
-    const ipc = getIpc();
-    if (!ipc) return;
-
+    if (!electron) return;
     if (!isRecordingDebug) {
-      const res = (await ipc.invoke("pedals:startDebugRecord")) as {
+      const res = (await electron.invoke("pedals:startDebugRecord")) as {
         success: boolean;
         error?: string;
       };
@@ -1162,7 +1104,7 @@ export const Pedals = () => {
       }
     } else {
       setIsRecordingDebug(false);
-      const res = (await ipc.invoke("pedals:stopDebugRecord")) as {
+      const res = (await electron.invoke("pedals:stopDebugRecord")) as {
         success: boolean;
         filePath?: string;
         error?: string;
@@ -1177,14 +1119,38 @@ export const Pedals = () => {
     }
   };
 
+  const handleGetHelp = async () => {
+    if (!electron) return;
+    try {
+      const res = (await electron.invoke("pedals:getReadme")) as {
+        success: boolean;
+        content?: string;
+        error?: string;
+      };
+      if (res.success && res.content) {
+        setReadmeContent(res.content);
+        setIsReadmeOpen(true);
+      } else {
+        toast.error("Could not load guide: " + (res.error ?? "File missing"));
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(
+        "Terminal/IPC Error: Please restart the app. " + error.message,
+      );
+    }
+  };
+
   return (
     <div className="pedals_page">
       <StatusBar
         connected={isConnected}
         name={deviceName}
         plugins={plugins}
-        activeId={activePlugin}
-        setActiveId={setActivePlugin}
+        activeId={activePluginId}
+        setActiveId={setActivePluginId}
+        isDefault={isDefault}
+        setIsDefault={setIsDefault}
         onLoad={() => {
           void handleLoadPlugin();
         }}
@@ -1192,7 +1158,12 @@ export const Pedals = () => {
         hiddenCount={hiddenCount}
         onShowAll={showAll}
         isRecording={isRecordingDebug}
-        onToggleRecord={toggleDebugRecord}
+        onToggleRecord={() => {
+          void toggleDebugRecord();
+        }}
+        onGetHelp={() => {
+          void handleGetHelp();
+        }}
       />
       <div className="pedals_grid">
         {PEDALS.map((pedal) => {
@@ -1213,18 +1184,53 @@ export const Pedals = () => {
               calActive={cal.active}
               calPedal={cal.pedal}
               configMinMax={getMinMax(pedal)}
-              onPts={(pts) => handlePts(pedal, pts)}
-              onPreset={(pr) => handlePreset(pedal, pr)}
-              onReverse={(v) => handleReverse(pedal, v)}
-              onDzChange={(w, v) => handleDzChange(pedal, w, v)}
+              onPts={(pts) =>
+                updateConfig(activePluginId, {
+                  curves: { ...curves, [pedal]: pts },
+                  presets: { ...presets, [pedal]: "custom" },
+                })
+              }
+              onPreset={(pr) =>
+                updateConfig(activePluginId, {
+                  presets: { ...presets, [pedal]: pr },
+                  curves:
+                    pr !== "custom"
+                      ? {
+                          ...curves,
+                          [pedal]: PRESETS[pr].map((pt) => [...pt] as Pt),
+                        }
+                      : curves,
+                })
+              }
+              onReverse={(v) =>
+                updateConfig(activePluginId, {
+                  reversed: { ...reversed, [pedal]: v },
+                })
+              }
+              onDzChange={(w, v) =>
+                updateConfig(activePluginId, {
+                  deadzones: {
+                    ...deadzones,
+                    [pedal]: { ...deadzones[pedal], [w]: v },
+                  },
+                })
+              }
               onDzCommit={() => {
                 void handleDzCommit(pedal);
               }}
               onCalibrate={() => {
                 void openCalibration(pedal);
               }}
-              onRename={(s) => handleRename(pedal, s)}
-              onHide={() => toggleHide(pedal)}
+              onRename={(s) =>
+                updateConfig(activePluginId, {
+                  labels: { ...labels, [pedal]: s },
+                })
+              }
+              onHide={() =>
+                updateConfig(activePluginId, {
+                  hidden: { ...hidden, [pedal]: !hidden[pedal] },
+                })
+              }
             />
           );
         })}
@@ -1239,6 +1245,13 @@ export const Pedals = () => {
         onCancel={() => {
           void cancelCalibration();
         }}
+      />
+
+      <MarkdownModal
+        isOpen={isReadmeOpen}
+        onClose={() => setIsReadmeOpen(false)}
+        markdownContent={readmeContent}
+        title="How to add your pedal"
       />
     </div>
   );

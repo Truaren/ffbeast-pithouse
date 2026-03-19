@@ -1,6 +1,6 @@
 {
   "name": "ffbeast-pit-house",
-  "version": "3.0.0",
+  "version": "4.1.0",
   "private": true,
   "description": "Pit House for FFBeast Wheel - Powerful configuration tool for racing simulators.",
   "author": "truearena",
@@ -41,7 +41,9 @@
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.11.0",
+    "remark-gfm": "^4.0.1",
     "sass-embedded": "^1.97.1",
     "sonner": "^2.0.7",
     "zustand": "^5.0.9"
@@ -87,6 +89,7 @@
     "files": [
       "dist/**/*",
       "main.js",
+      "preload.cjs",
       "package.json"
     ],
     "extraFiles": [
