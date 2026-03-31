@@ -165,7 +165,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.1s ease-out;
     aspect-ratio: 1 / 1;
     clip-path: circle(50%);
 
@@ -187,6 +186,7 @@
       transform: scale(1.15);
       mix-blend-mode: multiply;
       transition: filter 0.3s ease;
+      will-change: transform;
     }
 
     .buttons {

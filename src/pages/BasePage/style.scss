@@ -10,7 +10,7 @@
 
   .base_card {
     // Match .panel from dashboard
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 16px;
     padding: 0;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);

@@ -23,7 +23,7 @@ export const EffectSettings = () => {
             label="Motion Range (%)"
             value={effects.motionRange}
             max={2700}
-            onValueCommit={(v) => setSetting(SettingField.MotionRange, v)}
+            onValueCommit={(v) => setSetting(19 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "Determines how far you can physically turn the wheel. (e.g., 900° for road cars, 360° for F1).",
@@ -51,9 +51,7 @@ export const EffectSettings = () => {
             isPro
             label="Integrated Spring Strength (%)"
             value={effects.integratedSpringStrength}
-            onValueCommit={(v) =>
-              setSetting(SettingField.IntegratedSpringStrength, v)
-            }
+            onValueCommit={(v) => setSetting(43 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "An always-on centering force that pulls the wheel back to the middle, ignoring game physics.",
@@ -76,12 +74,11 @@ export const EffectSettings = () => {
               animationType: "dampen",
             }}
           />
-          {/* <Slider
+          <Slider
+            isPro
             label="Dynamic Dampening (%)"
-            value={(effects as any).dynamicDampeningStrength}
-            onValueCommit={(v) =>
-              setSetting((SettingField as any).DynamicDampeningStrength, v)
-            }
+            value={effects.dynamicDampeningStrength}
+            onValueCommit={(v) => setSetting(10 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "Dampens the wheel based on rotational speed to prevent oscillation and unrealistic spinning.",
@@ -89,14 +86,14 @@ export const EffectSettings = () => {
                 "Crucial for high power bases to prevent self-oscillation. Starts taking effect only when moving fast.",
               animationType: "dampen",
             }}
-          /> */}
+          />
           <Slider
             isPro
             label="Soft Stop Range (°)"
             value={effects.softStopRange}
             min={1}
             max={45}
-            onValueCommit={(v) => setSetting(SettingField.SoftStopRange, v)}
+            onValueCommit={(v) => setSetting(20 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "The buffer zone where force ramps up as you reach the maximum rotation limit.",

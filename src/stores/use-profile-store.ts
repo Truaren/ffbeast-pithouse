@@ -146,13 +146,23 @@ export const useProfileStore = create<ProfileStore>()(
         },
 
         setDefaultProfile: (id) => {
-          set((state) => ({
-            profiles: state.profiles.map((p) =>
+          set((state) => {
+            const updatedProfiles = state.profiles.map((p) =>
               p.id === id
                 ? { ...p, isDefault: true }
                 : { ...p, isDefault: false },
-            ),
-          }));
+            );
+
+            return {
+              profiles: updatedProfiles,
+              activeProfile:
+                state.activeProfile?.id === id
+                  ? { ...state.activeProfile, isDefault: true }
+                  : state.activeProfile?.isDefault
+                    ? { ...state.activeProfile, isDefault: false }
+                    : state.activeProfile,
+            };
+          });
         },
 
         deleteProfile: (id) => {
@@ -247,11 +257,20 @@ export const useProfileStore = create<ProfileStore>()(
 
 // --- Disk Persistence Sync ---
 
-if (typeof window !== "undefined" && window.electron) {
-  const electron = window.electron;
+interface ElectronWindow extends Window {
+  require: (module: "electron") => {
+    ipcRenderer: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+    };
+  };
+}
+
+const win = window as unknown as ElectronWindow;
+if (typeof window !== "undefined" && win.require) {
+  const { ipcRenderer } = win.require("electron");
 
   // Load from disk on startup
-  void electron.invoke("load-profiles").then((res) => {
+  void ipcRenderer.invoke("load-profiles").then((res) => {
     const diskProfiles = res as Profile[] | null;
     if (diskProfiles && Array.isArray(diskProfiles)) {
       console.log("Profiles loaded from disk, syncing store...");
@@ -263,7 +282,7 @@ if (typeof window !== "undefined" && window.electron) {
   useProfileStore.subscribe(
     (state) => state.profiles,
     (profiles) => {
-      electron.invoke("save-profiles", profiles).catch((err: unknown) => {
+      ipcRenderer.invoke("save-profiles", profiles).catch((err: Error) => {
         console.error("Failed to sync profiles to disk:", err);
       });
     },

@@ -43,7 +43,7 @@ export const DEVICE_SETTINGS_MAP: Partial<
     key: "totalEffectStrength",
   },
 
-  [SettingField.IntegratedSpringStrength]: {
+  [43 as unknown as SettingField]: {
     scope: "effects",
     key: "integratedSpringStrength",
   },
@@ -76,6 +76,11 @@ export const DEVICE_SETTINGS_MAP: Partial<
   [SettingField.DirectXPeriodicStrength]: {
     scope: "effects",
     key: "directXPeriodicStrength",
+  },
+
+  [10 as unknown as SettingField]: {
+    scope: "effects",
+    key: "dynamicDampeningStrength",
   },
 
   /* ==============================
@@ -132,12 +137,12 @@ export const DEVICE_SETTINGS_MAP: Partial<
     key: "brakingLimit",
   },
 
-  [SettingField.PositionSmoothing]: {
+  [19 as unknown as SettingField]: {
     scope: "hardware",
     key: "positionSmoothing",
   },
 
-  [SettingField.SpeedBufferSize]: {
+  [20 as unknown as SettingField]: {
     scope: "hardware",
     key: "speedBufferSize",
   },

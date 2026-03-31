@@ -24,7 +24,7 @@ export function useSetting() {
         try {
           await api.sendSetting(field, index, value);
         } catch (error) {
-          console.error(`Failed to send setting ${field}:`, error);
+          console.error(`[FFBeast] Failed to send setting ${field}:`, error);
           throw error;
         }
       }

@@ -96,9 +96,9 @@ export const Topbar = () => {
           <h1>FFBeast Pit House</h1>
         </div>
         <div className="info">
-          <span className="version">v4.1.0</span>
+          <span className="version">v4.2.0</span>
           <button
-            className={`license_badge ${isPro ? "pro" : "free"}`}
+            className={`badge ${isPro ? "pro" : "free"}`}
             onClick={handleBadgeClick}
             title={
               isPro ? "PRO License Active" : "Click to activate PRO license"

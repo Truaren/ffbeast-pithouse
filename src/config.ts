@@ -46,9 +46,10 @@ export const DEFAULT_EFFECT_SETTINGS: DeviceSettings["effects"] = {
   softStopRange: 10,
   softStopStrength: 100,
   directXConstantDirection: -1,
-  directXSpringStrength: 100,
-  directXConstantStrength: 100,
-  directXPeriodicStrength: 100,
+  directXSpringStrength: 0,
+  directXConstantStrength: 0,
+  directXPeriodicStrength: 0,
+  dynamicDampeningStrength: 0,
 };
 
 const DEFAULT_HARDWARE_SETTINGS: DeviceSettings["hardware"] = {

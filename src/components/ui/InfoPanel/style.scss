@@ -4,7 +4,15 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 0.75rem;
+  overflow: hidden;
   animation: slideDown 0.2s ease;
+
+  // Remove any potential scrollbars
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   .video {
     width: 100%;

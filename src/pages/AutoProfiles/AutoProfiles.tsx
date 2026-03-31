@@ -4,11 +4,21 @@ import { FolderOpen, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button, Divider } from "@/components/ui";
-import { useElectron } from "@/hooks/use-electron";
 import { useAppPreferencesStore, useProfileStore } from "@/stores";
 
+interface ElectronWindow extends Window {
+  require: (module: "electron") => {
+    ipcRenderer: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<string | null>;
+    };
+  };
+}
+
+const { ipcRenderer } = (window as unknown as ElectronWindow).require(
+  "electron",
+);
+
 export const AutoProfiles = () => {
-  const electron = useElectron();
   const { preferences, addAutoProfile, removeAutoProfile } =
     useAppPreferencesStore();
   const { profiles } = useProfileStore();
@@ -24,11 +34,8 @@ export const AutoProfiles = () => {
   };
 
   const handleBrowseExe = async () => {
-    if (!electron) return;
     try {
-      const fileName = (await electron.invoke("select-exe-file")) as
-        | string
-        | null;
+      const fileName = await ipcRenderer.invoke("select-exe-file");
       if (fileName) {
         setNewAutoExe(fileName);
       }

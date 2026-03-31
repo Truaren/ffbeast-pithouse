@@ -3,7 +3,7 @@ import "./style.scss";
 import { Button, InfoPanel, type InfoPanelProps } from "@components/ui";
 import { useEffect, useRef, useState } from "react";
 
-import { useWheelStore } from "@/stores";
+import { useAppPreferencesStore, useWheelStore } from "@/stores";
 
 export interface SliderProps {
   isPro?: boolean;
@@ -68,7 +68,11 @@ export const Slider = ({
     (state) => state.deviceState?.isRegistered,
   );
 
-  const isDisabled = disabled || (isPro && !isRegistered);
+  const isAppPro = useAppPreferencesStore((state) => state.preferences.isPro);
+
+  const isUnlocked = !!isRegistered || !!isAppPro;
+
+  const isDisabled = disabled || (isPro && !isUnlocked);
 
   const POPUP_HEIGHT = 320; // estimated max height of the info panel
 
@@ -114,7 +118,7 @@ export const Slider = ({
       {!hideLabel && (
         <div className="option_title">
           <span>
-            {label} {isPro && <span className="pro_badge">PRO</span>}
+            {label} {isPro && <i className="badge pro">PRO</i>}
           </span>
 
           <div className="value_controls">

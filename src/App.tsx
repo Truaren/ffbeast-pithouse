@@ -4,13 +4,12 @@ import { MainLayout, Sidebar, Topbar } from "@components/layout";
 import { AutoProfileWatcher, ScrollToTop } from "@components/utils";
 import { ConnectionPage, UnsupportedBrowser } from "@pages";
 import { WheelApi } from "@shubham0x13/ffbeast-wheel-webhid-api";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { HashRouter } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { Toaster } from "sonner";
+import { toast } from "sonner";
 
 import { UpdateModal } from "@/components/ui/UpdateModal/UpdateModal";
-import { useElectron } from "@/hooks/use-electron";
-import { IPC, IPC_LISTEN } from "@/ipc-channels";
 import {
   useAppPreferencesStore,
   useProfileStore,
@@ -25,47 +24,6 @@ const App = () => {
   const { checkForUpdate, hasCheckedOnStartup, setHasCheckedOnStartup } =
     useUpdateStore();
   const { preferences } = useAppPreferencesStore();
-  const electron = useElectron();
-
-  // Handle Safe Mode CSS class
-  useEffect(() => {
-    if (preferences.performance?.safeMode) {
-      document.body.classList.add("safe-mode");
-    } else {
-      document.body.classList.remove("safe-mode");
-    }
-  }, [preferences.performance?.safeMode]);
-
-  // Handle global recenter shortcut registration and invocation
-  useEffect(() => {
-    if (!electron) return;
-
-    const handleRecenter = () => {
-      const api = useWheelStore.getState().api;
-      if (api) {
-        api.resetWheelCenter().catch(console.error);
-        toast.info("Wheel centered via shortcut.");
-      }
-    };
-
-    const unsubscribe = electron.on(IPC_LISTEN.RECENTER_WHEEL, handleRecenter);
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [electron]);
-
-  useEffect(() => {
-    if (!electron) return;
-    electron
-      .invoke(IPC.SET_RECENTER_SHORTCUT, preferences.centerWheelKey ?? null)
-      .then((res) => {
-        const result = res as { success: boolean; error?: string };
-        if (!result.success && result.error) {
-          console.error("Failed to register shortcut:", result.error);
-        }
-      })
-      .catch(console.error);
-  }, [electron, preferences.centerWheelKey]);
 
   // Check for updates on startup
   useEffect(() => {
@@ -84,6 +42,7 @@ const App = () => {
 
   // Auto-load default profile on startup
   useEffect(() => {
+    // Wait until profiles are loaded (from disk/storage) and no profile is active yet
     if (profiles.length > 0 && !activeProfile) {
       const defaultProfile = profiles.find((p) => p.isDefault) ?? profiles[0];
       if (defaultProfile) {
@@ -96,9 +55,67 @@ const App = () => {
     }
   }, [profiles, activeProfile, setActiveProfile]);
 
-  const [isBypassed, setIsBypassed] = useState(false);
+  // Apply safe-mode class to body
+  useEffect(() => {
+    if (preferences.performance?.safeMode) {
+      document.body.classList.add("safe-mode");
+    } else {
+      document.body.classList.remove("safe-mode");
+    }
+  }, [preferences.performance?.safeMode]);
 
-  const { isConnected } = useWheelStore();
+  // Register center wheel shortcut
+  useEffect(() => {
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
+    if (win.require && preferences.centerWheelKey) {
+      const { ipcRenderer } = win.require("electron");
+      void ipcRenderer.invoke(
+        "set-recenter-shortcut",
+        preferences.centerWheelKey,
+      );
+    }
+  }, [preferences.centerWheelKey]);
+
+  // Listen for recenter-wheel event from Electron
+  useEffect(() => {
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          on: (channel: string, listener: (...args: unknown[]) => void) => void;
+          removeAllListeners: (channel: string) => void;
+        };
+      };
+    };
+    if (win.require) {
+      const { ipcRenderer } = win.require("electron");
+      const { api } = useWheelStore.getState();
+
+      const handleRecenter = () => {
+        console.log("[Shortcut] Recenter wheel triggered");
+        if (api) {
+          api
+            .resetWheelCenter()
+            .then(() => {
+              toast.info("Wheel centered via shortcut");
+            })
+            .catch((err: Error) =>
+              console.error("Failed to center wheel:", err),
+            );
+        }
+      };
+
+      ipcRenderer.on("recenter-wheel", handleRecenter);
+      return () => {
+        ipcRenderer.removeAllListeners("recenter-wheel");
+      };
+    }
+  }, []);
 
   if (!WheelApi.isSupported()) {
     return <UnsupportedBrowser />;
@@ -123,9 +140,7 @@ const App = () => {
         }}
       />
 
-      {!isConnected && !isBypassed && (
-        <ConnectionPage onSkip={() => setIsBypassed(true)} />
-      )}
+      <ConnectionPage />
 
       <HashRouter>
         <TitleBarProvider>

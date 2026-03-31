@@ -647,9 +647,6 @@ export const Dashboard = () => {
                     min={0}
                     max={100}
                     hideLabel
-                    onValueChange={(v) =>
-                      setSetting(SettingField.TotalEffectStrength, v)
-                    }
                     onValueCommit={(v) => {
                       void setSetting(SettingField.TotalEffectStrength, v);
                     }}

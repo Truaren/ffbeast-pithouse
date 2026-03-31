@@ -17,6 +17,13 @@
     width: 320px;
     max-height: 420px;
     overflow-y: auto;
+
+    // Hide scrollbar but keep functionality
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
     margin-top: 0;
     animation: slideDown 0.15s ease;
@@ -40,10 +47,6 @@
       color: var(--text-secondary);
       font-weight: 500;
       letter-spacing: -0.2px;
-
-      :global(.dark) & {
-        color: var(--text-secondary);
-      }
     }
 
     .value_controls {
@@ -113,19 +116,6 @@
         -moz-appearance: textfield;
       }
     }
-
-    .pro_badge {
-      color: var(--text-primary);
-      font-size: 0.6rem;
-      font-weight: 700;
-      opacity: 0.8;
-      letter-spacing: 0.5px;
-      margin-left: 0.5rem;
-      background-color: var(--accent);
-      padding: 0.2rem 0.4rem;
-      border-radius: 0.4rem;
-      color: var(--bg-primary);
-    }
   }
 
   .slider_track_container {
@@ -154,10 +144,6 @@
       color: var(--text-secondary);
       font-weight: 500;
       user-select: none;
-
-      :global(.dark) & {
-        color: var(--text-secondary);
-      }
 
       span {
         background: transparent;

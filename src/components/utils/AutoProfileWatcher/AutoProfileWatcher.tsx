@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-import { useElectron } from "@/hooks/use-electron";
-import { IPC } from "@/ipc-channels";
 import { useAppPreferencesStore, useProfileStore } from "@/stores";
 
 export const AutoProfileWatcher = () => {
@@ -14,19 +12,26 @@ export const AutoProfileWatcher = () => {
       setActiveProfile: s.setActiveProfile,
     })),
   );
-  const electron = useElectron();
   const lastAppliedExeRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!electron) return;
-
     const checkProcesses = async () => {
       const autoProfiles = preferences.autoProfiles ?? [];
       if (autoProfiles.length === 0) return;
 
       try {
-        const runningProcesses = (await electron.invoke(
-          IPC.GET_RUNNING_PROCESSES,
+        const win = window as unknown as {
+          require?: (module: string) => {
+            ipcRenderer: {
+              invoke: (channel: string) => Promise<unknown>;
+            };
+          };
+        };
+        if (!win.require) return;
+        const { ipcRenderer } = win.require("electron");
+
+        const runningProcesses = (await ipcRenderer.invoke(
+          "get-running-processes",
         )) as string[];
 
         const matchedMapping = autoProfiles.find((mapping) =>
@@ -64,13 +69,7 @@ export const AutoProfileWatcher = () => {
 
     const interval = setInterval(() => void checkProcesses(), 5000);
     return () => clearInterval(interval);
-  }, [
-    electron,
-    preferences.autoProfiles,
-    profiles,
-    activeProfile,
-    setActiveProfile,
-  ]);
+  }, [preferences.autoProfiles, profiles, activeProfile, setActiveProfile]);
 
   return null;
 };

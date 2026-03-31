@@ -21,6 +21,21 @@
   box-sizing: border-box;
 }
 
+.badge {
+  @include pro_badge;
+  margin-left: 0.35rem;
+  flex-shrink: 0;
+  display: inline-flex;
+
+  &.pro {
+    @include pro_badge;
+  }
+
+  &.free {
+    @include free_badge;
+  }
+}
+
 body {
   background: var(--bg-primary);
   color: var(--text-primary);

@@ -108,6 +108,7 @@ export const Axes = () => {
                 </div>
                 <div className="axis_row_two">
                   <Slider
+                    isPro
                     label="Smoothing (%)"
                     value={smoothing}
                     onValueCommit={(v) =>

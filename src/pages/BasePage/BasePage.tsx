@@ -48,7 +48,7 @@ export const BasePage = () => {
             isPro
             label="Position Smoothing (%)"
             value={hardware.positionSmoothing}
-            onValueCommit={(v) => setSetting(SettingField.PositionSmoothing, v)}
+            onValueCommit={(v) => setSetting(19 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "Filters out jitter or noise from your encoder position sensor.",
@@ -62,7 +62,7 @@ export const BasePage = () => {
             value={hardware.speedBufferSize}
             min={2}
             max={32}
-            onValueCommit={(v) => setSetting(SettingField.SpeedBufferSize, v)}
+            onValueCommit={(v) => setSetting(20 as unknown as SettingField, v)}
             infoPanelProps={{
               description:
                 "The averaging window for calculating rotation speed. Crucial for smooth Dampening effects.",

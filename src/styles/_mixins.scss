@@ -19,3 +19,43 @@
     opacity: 60%;
   }
 }
+
+@mixin pro_badge {
+  background: #ff4757;
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
+  vertical-align: middle;
+  user-select: none;
+  cursor: default;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-style: normal;
+}
+
+@mixin free_badge {
+  background: #2ed573;
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
+  vertical-align: middle;
+  user-select: none;
+  cursor: default;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-style: normal;
+}

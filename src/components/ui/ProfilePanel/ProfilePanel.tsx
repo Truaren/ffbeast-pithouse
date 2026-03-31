@@ -530,12 +530,12 @@ export const ProfilePanel = ({ onClose }: ProfilePanelProps) => {
                       ) : (
                         <span className="item_name">
                           {p.name}
-                          <span
-                            className={`version_badge ${p.appPreferences?.isPro ? "pro" : "free"}`}
+                          <i
+                            className={`badge ${p.appPreferences?.isPro ? "pro" : "free"}`}
                             style={{ marginLeft: "8px" }}
                           >
                             {p.appPreferences?.isPro ? "PRO" : "FREE"}
-                          </span>
+                          </i>
                           {p.isDefault && (
                             <i
                               className="fi fi-sr-star default_star"
@@ -670,11 +670,11 @@ export const ProfilePanel = ({ onClose }: ProfilePanelProps) => {
                       <span className="game_tag">
                         {p.appPreferences?.wheelName ?? "Generic"}
                       </span>
-                      <span
-                        className={`version_badge ${p.appPreferences?.isPro ? "pro" : "free"}`}
+                      <i
+                        className={`badge ${p.appPreferences?.isPro ? "pro" : "free"}`}
                       >
                         {p.appPreferences?.isPro ? "PRO" : "FREE"}
-                      </span>
+                      </i>
                     </div>
                   </div>
                   <div className="tile_content">

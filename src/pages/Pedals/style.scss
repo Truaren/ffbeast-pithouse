@@ -26,32 +26,6 @@
       color: var(--accent);
     }
   }
-
-  .plugin_selector_wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding-left: 0.5rem;
-    border-left: 1px solid var(--border);
-  }
-
-  .help_btn {
-    display: flex;
-    align-items: center;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    padding: 0.15rem 0.6rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s;
-    &:hover {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      border-color: var(--text-secondary);
-    }
-  }
   .pedal_plugin_select {
     background: var(--bg-primary);
     border: 1px solid var(--border);
@@ -119,6 +93,112 @@
     &:hover {
       opacity: 0.8;
     }
+  }
+
+  .pedal_status_indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 10px;
+
+    .status_dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+      transition: all 0.2s;
+
+      &.connected {
+        background: #22c55e;
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+      }
+    }
+
+    .status_text {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+  }
+
+  .help_btn {
+    background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+    border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+    border-radius: 5px;
+    padding: 0.18rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+  }
+
+  .debug_record_btn {
+    margin-left: 8px;
+    padding: 0.18rem 0.6rem;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.recording {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border-color: #ef4444;
+      &:hover {
+        background: rgba(239, 68, 68, 0.25);
+      }
+    }
+
+    .record_dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    &.recording .record_dot {
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: pulse_red 1s infinite;
+    }
+  }
+}
+
+@keyframes pulse_red {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
   }
 }
 
@@ -283,7 +363,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: rgba(var(--text-primary-rgb), 0.3);
+  background: rgba(255, 255, 255, 0.45);
   pointer-events: none;
   z-index: 2;
   transform: translateX(-50%);

@@ -303,15 +303,6 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
           if (!state) return;
           console.log("Rehydrating App Preferences Store...");
           applyThemeToDOM(state.preferences.theme);
-          // Signal that IndexedDB rehydration is complete
-          // This is used by store-coordinator to ignore the initial burst of changes
-          import("./store-coordinator")
-            .then(({ storeRehydrationFlags }) => {
-              storeRehydrationFlags.preferences = true;
-            })
-            .catch(() => {
-              /* ignore */
-            });
         },
       },
     ),
@@ -320,23 +311,32 @@ export const useAppPreferencesStore = create<AppPreferencesStore>()(
 
 // --- Disk Persistence Sync ---
 
-if (typeof window !== "undefined" && window.electron) {
-  const electron = window.electron;
+interface ElectronWindow extends Window {
+  require: (module: "electron") => {
+    ipcRenderer: {
+      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+    };
+  };
+}
+
+const winPrefs = window as unknown as ElectronWindow;
+if (typeof window !== "undefined" && winPrefs.require) {
+  const { ipcRenderer } = winPrefs.require("electron");
 
   // Load from disk on startup
-  void electron.invoke("load-preferences").then((res) => {
+  void ipcRenderer.invoke("load-preferences").then((res) => {
     const diskPrefs = res as AppPreferences | null;
     if (diskPrefs) {
       console.log("App preferences loaded from disk, syncing store...");
-      useAppPreferencesStore.setState({ preferences: diskPrefs });
+      useAppPreferencesStore.getState().replacePreferences(diskPrefs);
     }
   });
 
   // Subscribe to changes and save to disk
   useAppPreferencesStore.subscribe(
     (state) => state.preferences,
-    (preferences) => {
-      electron.invoke("save-preferences", preferences).catch((err: unknown) => {
+    (prefs) => {
+      ipcRenderer.invoke("save-preferences", prefs).catch((err: Error) => {
         console.error("Failed to sync preferences to disk:", err);
       });
     },

@@ -434,24 +434,6 @@
         font-weight: 800;
         text-transform: uppercase;
       }
-
-      .version_badge {
-        font-size: 0.6rem;
-        font-weight: 800;
-        padding: 0.15rem 0.4rem;
-        border-radius: 2px;
-        text-transform: uppercase;
-        &.pro {
-          background: rgba(255, 71, 87, 0.15);
-          color: #ff4757;
-          border: 1px solid #ff4757;
-        }
-        &.free {
-          background: rgba(46, 213, 115, 0.15);
-          color: #2ed573;
-          border: 1px solid #2ed573;
-        }
-      }
     }
 
     /* Name + author */

@@ -1,6 +1,6 @@
 import "./styles.scss";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
 
@@ -41,15 +41,56 @@ export const WheelPreview = () => {
         centerWheelKey: state.preferences.centerWheelKey,
       })),
     );
-  const { api, positionDegrees } = useWheelStore(
+  const { api } = useWheelStore(
     useShallow((state) => ({
       api: state.api,
-      positionDegrees: state.deviceState?.positionDegrees ?? 0,
     })),
   );
   const motionRange = useDeviceSettingsStore(
     (state) => state.settings.effects.motionRange,
   );
+
+  const wheelRef = useRef<HTMLImageElement>(null);
+  const angleTextRef = useRef<HTMLSpanElement>(null);
+  const barsRef = useRef<HTMLDivElement>(null);
+
+  // Direct DOM updates for rotation and bars
+  useEffect(() => {
+    return useWheelStore.subscribe(
+      (state) => state.deviceState?.positionDegrees,
+      (pos) => {
+        const positionDegrees = pos ?? 0;
+
+        // Update wheel image rotation
+        if (wheelRef.current) {
+          wheelRef.current.style.transform = `rotate(${positionDegrees}deg)`;
+        }
+
+        // Update angle text
+        if (angleTextRef.current) {
+          angleTextRef.current.innerText = `${positionDegrees.toFixed(2)}°`;
+        }
+
+        // Update active bar
+        if (barsRef.current) {
+          const halfRange = motionRange / 2;
+          const normalizedRotation =
+            (positionDegrees + halfRange) / motionRange;
+          const index = Math.round(normalizedRotation * (BAR_COUNT - 1));
+          const activeIndex = Math.min(BAR_COUNT - 1, Math.max(0, index));
+
+          const bars = barsRef.current.children;
+          for (let i = 0; i < bars.length; i++) {
+            if (i === activeIndex) {
+              bars[i].classList.add("active");
+            } else {
+              bars[i].classList.remove("active");
+            }
+          }
+        }
+      },
+    );
+  }, [motionRange]);
   const { switchProfile } = useProfileSwitcher();
 
   // Global hotkey: recenter wheel when bound key is pressed
@@ -59,6 +100,7 @@ export const WheelPreview = () => {
       const tag = (e.target as HTMLElement).tagName.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if (e.key === centerWheelKey) {
+        // Use resetWheelCenter as requested by the user
         void api.resetWheelCenter();
         toast.success("Wheel recentered!");
       }
@@ -66,14 +108,6 @@ export const WheelPreview = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [centerWheelKey, api]);
-
-  const activeBarIndex = useMemo(() => {
-    const halfRange = motionRange / 2;
-    const normalizedRotation = (positionDegrees + halfRange) / motionRange;
-    const index = Math.round(normalizedRotation * (BAR_COUNT - 1));
-
-    return Math.min(BAR_COUNT - 1, Math.max(0, index));
-  }, [positionDegrees, motionRange]);
 
   const displayedProfiles = useMemo(() => {
     const firstThree = profiles.slice(0, 3);
@@ -100,13 +134,15 @@ export const WheelPreview = () => {
   return (
     <div className="wheel_preview">
       <div className="angle_representation">
-        <span className="angle_text">{positionDegrees.toFixed(2)}°</span>
+        <span className="angle_text" ref={angleTextRef}>
+          0.00°
+        </span>
 
-        <div className="bars">
+        <div className="bars" ref={barsRef}>
           {BAR_ANGLES.map((rotation, index) => (
             <div
               key={index}
-              className={`bar ${index === activeBarIndex ? "active" : ""}`}
+              className="bar"
               style={{
                 transform: `rotate(${rotation}deg) translateY(-${RADIUS})`,
               }}
@@ -117,10 +153,11 @@ export const WheelPreview = () => {
 
       <div className="wheel">
         <img
+          ref={wheelRef}
           src={wheelImageUrl}
           alt="Wheel Image Preview"
           draggable={false}
-          style={{ transform: `rotate(${positionDegrees}deg)` }}
+          style={{ transform: `rotate(0deg)` }}
         />
 
         <div className="buttons">

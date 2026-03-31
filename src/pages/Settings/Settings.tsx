@@ -8,7 +8,6 @@ import { useShallow } from "zustand/shallow";
 
 import { Button, Divider, InputBox, ToggleSwitch } from "@/components/ui";
 import { DEFAULT_APP_PREFERENCES } from "@/config";
-import { useElectron } from "@/hooks/use-electron";
 import { ROUTES } from "@/routes";
 import { useAppPreferencesStore, useWheelStore } from "@/stores";
 import { useUpdateStore } from "@/stores/updateStore";
@@ -50,7 +49,6 @@ export const Settings = () => {
     setCenterWheelKey,
     setPerformanceSetting,
   } = useAppPreferencesStore();
-  const electron = useElectron();
   const { checkForUpdate, isChecking, latestVersion } = useUpdateStore();
   const location = useLocation();
   const locationState = location.state as { tab?: string } | null;
@@ -73,28 +71,56 @@ export const Settings = () => {
   );
 
   useEffect(() => {
-    if (!electron) return;
-    void electron.invoke("get-app-settings").then((settings: unknown) => {
-      const s = settings as {
-        minimizeToTray: boolean;
-        startWithSystem: boolean;
+    // Check if we are in Electron
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
       };
-      setMinimizeToTray(s.minimizeToTray);
-      setStartWithSystem(s.startWithSystem);
-    });
-  }, [electron]);
+    };
+    if (win.require) {
+      const { ipcRenderer } = win.require("electron");
+      void ipcRenderer.invoke("get-app-settings").then((settings: unknown) => {
+        const s = settings as {
+          minimizeToTray: boolean;
+          startWithSystem: boolean;
+        };
+        setMinimizeToTray(s.minimizeToTray);
+        setStartWithSystem(s.startWithSystem);
+      });
+    }
+  }, []);
 
   const handleTrayToggle = (val: boolean) => {
     setMinimizeToTray(val);
-    if (electron) {
-      void electron.invoke("set-minimize-to-tray", val);
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
+    if (win.require) {
+      void win
+        .require("electron")
+        .ipcRenderer.invoke("set-minimize-to-tray", val);
     }
   };
 
   const handleAutostartToggle = (val: boolean) => {
     setStartWithSystem(val);
-    if (electron) {
-      void electron.invoke("set-start-with-system", val);
+    const win = window as unknown as {
+      require?: (module: string) => {
+        ipcRenderer: {
+          invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
+    if (win.require) {
+      void win
+        .require("electron")
+        .ipcRenderer.invoke("set-start-with-system", val);
     }
   };
 
@@ -439,7 +465,12 @@ export const Settings = () => {
 
   const renderFeedbackContent = () => (
     <div className="settings-content">
-      <h2>Provide Feedback</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <h2>Provide Feedback</h2>
+        <i className={`badge ${preferences.isPro ? "pro" : "free"}`}>
+          {preferences.isPro ? "PRO" : "FREE"}
+        </i>
+      </div>
       <p className="settings-description">
         Submit a bug report or feature request directly to the developer.
       </p>
@@ -633,7 +664,7 @@ export const Settings = () => {
             <h3>Thank you for your support! 🚀</h3>
             <p>Your PRO license is active. Enjoy all features!</p>
           </div>
-          <div className="pro_badge_large">PRO</div>
+          <i className="badge pro">PRO</i>
         </div>
       ) : null}
 
